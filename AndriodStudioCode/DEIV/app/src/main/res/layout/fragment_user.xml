@@ -1,19 +1,279 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".user.UserFragment"
     android:background="#F5F5F5">
 
-    <Button
-        android:id="@+id/btnLogout"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Logout"
-        android:textAllCaps="false"
-        android:padding="12dp"
-        android:backgroundTint="#FF0000"
-        android:textColor="@android:color/white" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-</FrameLayout>
+        <!-- Profile Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@android:color/white"
+            android:padding="20dp"
+            android:elevation="4dp"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_horizontal">
+
+            <ImageView
+                android:id="@+id/ivUserIcon"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/ic_user"
+                android:contentDescription="@string/user_icon"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:id="@+id/tvFullName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sarah Johnson"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/tvUsername"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="n@johnson"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:id="@+id/tvUserStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Active"
+                android:textSize="14sp"
+                android:textColor="#4CAF50"
+                android:background="#E8F5E9"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:radius="12dp"
+                android:gravity="center"/>
+        </LinearLayout>
+
+        <!-- Account Information Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@android:color/white"
+            android:padding="20dp"
+            android:elevation="4dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Account Information"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Full Name -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Full Name"
+                    android:textSize="16sp"
+                    android:textColor="#666666"/>
+
+                <TextView
+                    android:id="@+id/tvFullNameValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sarah Johnson"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
+
+            <!-- Username -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Username"
+                    android:textSize="16sp"
+                    android:textColor="#666666"/>
+
+                <TextView
+                    android:id="@+id/tvUsernameValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="sjohnson"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
+
+            <!-- Password (Hidden) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Password"
+                    android:textSize="16sp"
+                    android:textColor="#666666"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="**********"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Organization -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Organization"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:id="@+id/tvOrganization"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Federal Bureau of Investigation"
+                android:textSize="16sp"
+                android:textColor="#666666"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Created At -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Created At"
+                    android:textSize="16sp"
+                    android:textColor="#666666"/>
+
+                <TextView
+                    android:id="@+id/tvCreatedAt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="June 15, 2023"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Profile Actions Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@android:color/white"
+            android:padding="20dp"
+            android:elevation="4dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Profile Actions"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Edit Profile Button -->
+            <Button
+                android:id="@+id/btnEditProfile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Edit Profile"
+                android:textAllCaps="false"
+                android:padding="12dp"
+                android:backgroundTint="#4CAF50"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Change Password Button -->
+            <Button
+                android:id="@+id/btnChangePassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Change Password"
+                android:textAllCaps="false"
+                android:padding="12dp"
+                android:backgroundTint="#2196F3"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Logout Button -->
+            <Button
+                android:id="@+id/btnLogout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Logout"
+                android:textAllCaps="false"
+                android:padding="12dp"
+                android:backgroundTint="#FF0000"
+                android:textColor="@android:color/white"/>
+        </LinearLayout>
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+    </LinearLayout>
+</ScrollView>

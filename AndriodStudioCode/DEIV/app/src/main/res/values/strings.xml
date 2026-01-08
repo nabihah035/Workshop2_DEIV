@@ -2,4 +2,9 @@
     <string name="app_name">DEIV</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="logout_success">Logged out successfully</string>
+    <string name="logout_confirmation">Are you sure you want to logout?</string>
+    <string name="yes_logout">Yes, Logout</string>
+    <string name="cancel">Cancel</string>
+    <string name="user_icon">User icon</string>
 </resources>

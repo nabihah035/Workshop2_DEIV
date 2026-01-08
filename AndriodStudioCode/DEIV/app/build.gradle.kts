@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+
+    id("com.google.gms.google-services")
+
 }
 
 android {
@@ -45,10 +48,22 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+
+    // Custom Libraries
     implementation("com.android.volley:volley:1.2.1")
     implementation("androidx.recyclerview:recyclerview:1.3.1")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-messaging")
+
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation("com.google.code.gson:gson:2.8.9")
+
     implementation(libs.androidx.tools.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

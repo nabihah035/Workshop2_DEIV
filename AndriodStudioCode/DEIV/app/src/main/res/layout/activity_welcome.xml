@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="30dp"
+    android:gravity="center_horizontal">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.8"/>
+
+    <ImageView
+        android:id="@+id/imgLogo"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:src="@drawable/deiv_logo"
+        android:scaleType="fitCenter"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Verify Digital\nEvidence Instantly"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#0D47A1"
+        android:gravity="center"
+        android:layout_marginTop="30dp"
+        android:fontFamily="sans-serif-black"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Securely detect tampering and verify file integrity using AI technology."
+        android:textSize="14sp"
+        android:textColor="#757575"
+        android:gravity="center"
+        android:layout_marginTop="12dp"
+        android:lineSpacingExtra="4dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="20dp">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnGoToLogin"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="55dp"
+            android:text="Login"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/btn_blue_rounded"
+            android:elevation="10dp"
+            android:stateListAnimator="@null"
+            android:layout_marginEnd="15dp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnGoToRegister"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="55dp"
+            android:text="Register"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:background="#00FFFFFF"
+            android:elevation="0dp"
+            android:stateListAnimator="@null"
+            android:layout_marginStart="15dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>
