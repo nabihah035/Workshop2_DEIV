@@ -183,7 +183,7 @@
                         android:layout_height="wrap_content"
                         android:src="@drawable/ic_add"
                         android:contentDescription="Add Evidence"
-                        app:backgroundTint="#2196F3"
+                        app:backgroundTint="#0D47A1"
                         app:tint="@android:color/white"
                         android:layout_gravity="end|center_vertical"/>
                 </FrameLayout>

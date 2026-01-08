@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="30dp"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create Account"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:textColor="#0D47A1"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fill in your details to get started"
+            android:textSize="14sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="30dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="15dp">
+
+            <EditText
+                android:id="@+id/etFirstName"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="55dp"
+                android:background="@drawable/bg_input_field"
+                android:hint="First Name"
+                android:textColorHint="#909090"
+                android:paddingStart="20dp"
+                android:inputType="textCapWords"
+                android:layout_marginEnd="8dp"
+                android:textColor="@color/black"/>
+
+            <EditText
+                android:id="@+id/etLastName"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="55dp"
+                android:background="@drawable/bg_input_field"
+                android:hint="Last Name"
+                android:textColorHint="#909090"
+                android:paddingStart="20dp"
+                android:inputType="textCapWords"
+                android:layout_marginStart="8dp"
+                android:textColor="@color/black"/>
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/etRegUsername"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:background="@drawable/bg_input_field"
+            android:hint="Username"
+            android:textColorHint="#909090"
+            android:paddingStart="20dp"
+            android:inputType="text"
+            android:layout_marginBottom="15dp"
+            android:textColor="@color/black"/>
+
+        <EditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:background="@drawable/bg_input_field"
+            android:hint="Email Address"
+            android:textColorHint="#909090"
+            android:paddingStart="20dp"
+            android:inputType="textEmailAddress"
+            android:layout_marginBottom="15dp"
+            android:textColor="@color/black"/>
+
+        <EditText
+            android:id="@+id/etOrganization"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:background="@drawable/bg_input_field"
+            android:hint="Organization (e.g., UTeM)"
+            android:textColorHint="#909090"
+            android:paddingStart="20dp"
+            android:inputType="textCapWords"
+            android:layout_marginBottom="15dp"
+            android:textColor="@color/black"/>
+
+        <EditText
+            android:id="@+id/etRegPassword"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:background="@drawable/bg_input_field"
+            android:hint="Password"
+            android:textColorHint="#909090"
+            android:paddingStart="20dp"
+            android:inputType="textPassword"
+            android:layout_marginBottom="30dp"
+            android:textColor="@color/black"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnRegister"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Sign Up"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/btn_blue_rounded"
+            android:elevation="6dp"
+            android:stateListAnimator="@null"
+            android:layout_marginBottom="20dp"/>
+
+        <TextView
+            android:id="@+id/tvAlreadyAccount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Already have an account?"
+            android:textColor="#555555"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:padding="10dp"
+            android:layout_marginBottom="20dp"/>
+
+    </LinearLayout>
+</ScrollView>

@@ -54,7 +54,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Upload evidence files"
-            android:textColor="#666666"
+            android:textColor="#000000"
             android:textSize="14sp"
             android:padding="10dp"
             android:layout_marginBottom="12dp"/>
@@ -81,7 +81,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_upload"
                     android:layout_marginEnd="12dp"
-                    app:tint="#2196F3" />
+                    app:tint="#000000" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -104,7 +104,9 @@
                     android:id="@+id/btnPickFile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Choose File" />
+                    android:text="Choose File"
+                    android:backgroundTint="#0D47A1"
+                    android:textColor="#FFFFFF"/>
 
                 <TextView
                     android:id="@+id/tvFileName"
@@ -161,7 +163,7 @@
                 android:layout_height="wrap_content"
                 android:drawableLeft="@drawable/ic_upload"
                 android:text="Upload Evidence"
-                android:backgroundTint="#007BFF"
+                android:backgroundTint="#0D47A1"
                 android:textColor="#FFFFFF"
                 android:layout_marginBottom="14dp" />
 

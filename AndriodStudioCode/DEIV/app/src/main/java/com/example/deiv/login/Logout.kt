@@ -5,11 +5,10 @@ import android.content.Intent
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import com.example.deiv.login.LoginActivity
+import com.example.deiv.api.ApiService
+import android.widget.Toast
 
 class Logout(private val context: Context) {
-
-    private val LOGOUT_URL = "http://172.26.83.131/deiv_api/logout.php"
 
     fun logoutUser() {
         val session = SessionManager(context)
@@ -17,25 +16,34 @@ class Logout(private val context: Context) {
 
         val request = StringRequest(
             Request.Method.POST,
-            LOGOUT_URL,
-            {
-                // Clear local session even if server fails
+            ApiService.LOGOUT,
+            { response ->
+                // Server logout successful, clear local session
                 session.logout()
 
-                val intent = Intent(context, LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                context.startActivity(intent)
+                // Redirect to login screen
+                navigateToLogin()
             },
-            {
+            { error ->
                 // If network error, still logout locally
                 session.logout()
 
-                val intent = Intent(context, LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                context.startActivity(intent)
+                // Redirect to login screen
+                navigateToLogin()
+
+                // Log the error for debugging
+                error.printStackTrace()
             }
         )
-
         queue.add(request)
+    }
+
+    private fun navigateToLogin() {
+        val intent = Intent(context, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        context.startActivity(intent)
+
+        // Optional: Show a toast message
+        Toast.makeText(context, "Logged out successfully", Toast.LENGTH_SHORT).show()
     }
 }

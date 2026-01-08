@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "846119732034",
+    "project_id": "deiv-ac114",
+    "storage_bucket": "deiv-ac114.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:846119732034:android:b4156d3b8717ed2d773edb",
+        "android_client_info": {
+          "package_name": "com.example.deiv"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuF8zVj9yeMkSInU9ZDp9HrM0n3CvboPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
