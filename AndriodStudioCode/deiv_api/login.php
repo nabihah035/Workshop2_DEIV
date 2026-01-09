@@ -3,7 +3,6 @@ session_start();
 include "db_connect.php";
 header("Content-Type: application/json");
 
-// Example: login with username/password from POST (replace with your real login logic)
 $username = isset($_POST['username']) ? $_POST['username'] : '';
 $password = isset($_POST['password']) ? $_POST['password'] : '';
 
@@ -13,7 +12,7 @@ if (empty($username) || empty($password)) {
 }
 
 // Check user in database
-$stmt = $conn->prepare("SELECT User_id, password, status FROM `user` WHERE username = ?");
+$stmt = $conn->prepare("SELECT User_id, password, status, first_name, last_name, role FROM `user` WHERE username = ?");
 $stmt->bind_param("s", $username);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -31,12 +30,26 @@ if ($password !== $user['password']) {
     exit;
 }
 
+// Check user status
+if ($user['status'] === 'inactive') {
+    echo json_encode([
+        "status" => "inactive", 
+        "message" => "Account pending approval",
+        "user_id" => $user['User_id']
+    ]);
+    exit;
+}
+
 // Save user ID in session
 $_SESSION['user_id'] = $user['User_id'];
+$_SESSION['username'] = $username;
+$_SESSION['role'] = $user['role'];
 
 echo json_encode([
     "status" => "success",
     "message" => "Login successful",
-    "user_id" => $user['User_id']
+    "user_id" => $user['User_id'],
+    "name" => $user['first_name'] . ' ' . $user['last_name'],
+    "role" => $user['role']
 ]);
 ?>

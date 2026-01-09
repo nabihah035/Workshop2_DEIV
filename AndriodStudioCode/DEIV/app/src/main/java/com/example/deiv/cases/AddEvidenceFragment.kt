@@ -20,6 +20,8 @@ import com.example.deiv.api.ApiService
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.deiv.login.SessionManager
+import android.util.Log
 
 class AddEvidenceFragment : Fragment() {
 
@@ -36,6 +38,7 @@ class AddEvidenceFragment : Fragment() {
     private var selectedFileUri: Uri? = null
     private var selectedFileName: String = ""
     private var caseId: Int = -1
+    private var userId: Int = -1
 
     @SuppressLint("SetTextI18n")
     private val pickMediaLauncher = registerForActivityResult(
@@ -70,10 +73,13 @@ class AddEvidenceFragment : Fragment() {
 
         // Get case ID from arguments
         caseId = arguments?.getInt("case_id", -1) ?: -1
+        userId = arguments?.getInt("user_id", -1) ?: -1
 
         if (caseId > 0) {
             tvSubtitle.text = "Case #$caseId - Upload evidence files"
         }
+
+        debugSessionInfo()
 
         setupListeners()
 
@@ -93,7 +99,8 @@ class AddEvidenceFragment : Fragment() {
             if (selectedFileUri != null) {
                 uploadEvidence()
             } else {
-                Toast.makeText(requireContext(), "Please select a file first", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please select a file first", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
 
@@ -129,14 +136,20 @@ class AddEvidenceFragment : Fragment() {
                 imagePreview.visibility = View.VISIBLE
                 btnOpenPdf.visibility = View.GONE
             }
+
             mimeType == "application/pdf" -> {
                 imagePreview.visibility = View.GONE
                 btnOpenPdf.visibility = View.VISIBLE
             }
+
             else -> {
                 imagePreview.visibility = View.GONE
                 btnOpenPdf.visibility = View.GONE
-                Toast.makeText(requireContext(), "File type not supported for preview", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "File type not supported for preview",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -144,6 +157,19 @@ class AddEvidenceFragment : Fragment() {
     private fun uploadEvidence() {
         if (caseId <= 0) {
             Toast.makeText(requireContext(), "Invalid case ID", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Get user ID from session manager
+        val session = SessionManager(requireContext())
+        userId = session.getUserId()
+
+        if (userId <= 0) {
+            Toast.makeText(
+                requireContext(),
+                "User not authenticated. Please login again.",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
@@ -156,7 +182,6 @@ class AddEvidenceFragment : Fragment() {
 
         // Create request
         val queue = Volley.newRequestQueue(requireContext())
-        // Use centralized API URL
         val url = ApiService.EVIDENCE_UPLOAD
 
         val request = object : StringRequest(
@@ -169,7 +194,11 @@ class AddEvidenceFragment : Fragment() {
                 try {
                     val json = JSONObject(response)
                     if (json.getString("status") == "success") {
-                        Toast.makeText(requireContext(), "Evidence uploaded successfully!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "Evidence uploaded successfully!",
+                            Toast.LENGTH_SHORT
+                        ).show()
 
                         // Navigate back to case details
                         val bundle = Bundle()
@@ -186,13 +215,30 @@ class AddEvidenceFragment : Fragment() {
                         ).show()
                     }
                 } catch (_: Exception) {
-                    Toast.makeText(requireContext(), "Error parsing response", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Error parsing response", Toast.LENGTH_SHORT)
+                        .show()
                 }
             },
             { error ->
                 progressBar.visibility = View.GONE
                 btnUpload.isEnabled = true
-                Toast.makeText(requireContext(), "Upload failed: ${error.message}", Toast.LENGTH_SHORT).show()
+                // Add more detailed error information
+                val errorMsg = error.message ?: "Unknown error"
+                val networkResponse = error.networkResponse
+                val statusCode = networkResponse?.statusCode ?: 0
+                val responseData = if (networkResponse?.data != null) {
+                    String(networkResponse.data, Charsets.UTF_8)
+                } else {
+                    "No response data"
+                }
+
+                Log.e("UploadEvidence", "Error: $errorMsg, Status: $statusCode, Response: $responseData")
+
+                Toast.makeText(
+                    requireContext(),
+                    "Upload failed: $errorMsg (Status: $statusCode)",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         ) {
             override fun getParams(): Map<String, String> {
@@ -202,11 +248,21 @@ class AddEvidenceFragment : Fragment() {
                 params["status"] = "Pending"
                 params["hash_value"] = hashValue
                 params["case_id"] = caseId.toString()
+                // ADD user_id back to params since PHP needs it
+                params["user_id"] = userId.toString()  // Add this line back
                 return params
             }
 
             override fun getBodyContentType(): String {
                 return "application/x-www-form-urlencoded"
+            }
+
+            // Optional: Add headers if needed
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers["Content-Type"] = "application/x-www-form-urlencoded"
+                headers["Accept"] = "application/json"
+                return headers
             }
         }
 
@@ -217,5 +273,23 @@ class AddEvidenceFragment : Fragment() {
         val randomBytes = ByteArray(32)
         Random().nextBytes(randomBytes)
         return randomBytes.joinToString("") { "%02x".format(it) }
+    }
+
+    private fun debugSessionInfo() {
+        val session = SessionManager(requireContext())
+        val userId = session.getUserId()
+        val isLoggedIn = session.isLoggedIn()
+        val username = session.getName()
+
+        Log.d("SessionDebug", "User ID: $userId")
+        Log.d("SessionDebug", "Is Logged In: $isLoggedIn")
+        Log.d("SessionDebug", "Username: $username")
+
+        // Show in Toast for testing
+        Toast.makeText(
+            requireContext(),
+            "Session Debug - UserID: $userId, LoggedIn: $isLoggedIn",
+            Toast.LENGTH_LONG
+        ).show()
     }
 }

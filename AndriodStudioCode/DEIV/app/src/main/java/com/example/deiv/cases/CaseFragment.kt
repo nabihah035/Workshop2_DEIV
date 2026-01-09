@@ -23,6 +23,11 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import org.json.JSONObject
 import androidx.navigation.fragment.findNavController
 import android.graphics.Color
+import android.util.Log
+import java.text.SimpleDateFormat
+import java.util.*
+import android.widget.Toast
+
 class CaseFragment : Fragment() {
 
     private lateinit var recyclerCases: RecyclerView
@@ -186,26 +191,63 @@ class CaseFragment : Fragment() {
         val session = SessionManager(requireContext())
         val userId = session.getUserId()
 
-        if (userId <= 0) return
+        if (userId <= 0) {
+            Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
+            return
+        }
 
+        // Show progress (you might want to add a progress dialog here)
         val queue = Volley.newRequestQueue(requireContext())
         val stringRequest = object : StringRequest(
             Method.POST,
-            //Use centralized API URL
             ApiService.CASE_REGISTER,
             { response ->
                 try {
                     val json = JSONObject(response)
                     if (json.getString("status") == "success") {
+                        Toast.makeText(
+                            requireContext(),
+                            "Case created successfully!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
                         // Reload cases after successful creation
                         loadCases()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "Failed: ${json.getString("message")}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    Toast.makeText(
+                        requireContext(),
+                        "Error parsing response",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             },
             { error ->
                 error.printStackTrace()
+                // Add more detailed error information
+                val errorMsg = error.message ?: "Unknown error"
+                val networkResponse = error.networkResponse
+                val statusCode = networkResponse?.statusCode ?: 0
+                val responseData = if (networkResponse?.data != null) {
+                    String(networkResponse.data, Charsets.UTF_8)
+                } else {
+                    "No response data"
+                }
+
+                Log.e("CreateCase", "Error: $errorMsg, Status: $statusCode, Response: $responseData")
+
+                Toast.makeText(
+                    requireContext(),
+                    "Creation failed: $errorMsg",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         ) {
             override fun getParams(): Map<String, String> {
@@ -213,8 +255,20 @@ class CaseFragment : Fragment() {
                 params["case_name"] = caseName
                 params["description"] = description
                 params["status"] = "Pending"
-                params["user_id"] = userId.toString()
+                params["user_id"] = userId.toString()  // Important: Include user_id
                 return params
+            }
+
+            override fun getBodyContentType(): String {
+                return "application/x-www-form-urlencoded"
+            }
+
+            // Optional: Add headers if needed
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers["Content-Type"] = "application/x-www-form-urlencoded"
+                headers["Accept"] = "application/json"
+                return headers
             }
         }
 
