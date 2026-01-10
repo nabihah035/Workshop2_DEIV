@@ -24,14 +24,14 @@ if ($result->num_rows === 0) {
 
 $user = $result->fetch_assoc();
 
-// For now, plain password comparison (replace with password_hash in production!)
-if ($password !== $user['password']) {
+// FIXED: Use password_verify for hashed passwords
+if (!password_verify($password, $user['password'])) {
     echo json_encode(["status" => "error", "message" => "Incorrect password"]);
     exit;
 }
 
-// Check user status
-if ($user['status'] === 'inactive') {
+// Check user status - Note: Your database has 'Active' (capital A)
+if ($user['status'] === 'Inactive') {
     echo json_encode([
         "status" => "inactive", 
         "message" => "Account pending approval",
@@ -40,7 +40,7 @@ if ($user['status'] === 'inactive') {
     exit;
 }
 
-// Save user ID in session
+// Save user ID in session for PHP session-based APIs
 $_SESSION['user_id'] = $user['User_id'];
 $_SESSION['username'] = $username;
 $_SESSION['role'] = $user['role'];
@@ -52,4 +52,3 @@ echo json_encode([
     "name" => $user['first_name'] . ' ' . $user['last_name'],
     "role" => $user['role']
 ]);
-?>
