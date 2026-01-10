@@ -188,10 +188,15 @@
                 android:text="View All"
                 android:textSize="18sp"
                 android:textColor="#2196F3"
-                android:gravity="end"
+                android:gravity="end|center_vertical"
                 android:padding="8dp"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+
+                android:drawableEnd="@drawable/ic_arrowoutward"
+                android:drawableTint="#2196F3"
+                android:drawablePadding="2dp"/>
+
         </LinearLayout>
 
         <!-- Recent Cases List Container with Card -->

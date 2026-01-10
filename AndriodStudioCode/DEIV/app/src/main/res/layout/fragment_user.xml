@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F5F5">
@@ -26,8 +27,13 @@
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:src="@drawable/ic_user"
+                android:background="@drawable/bg_user"
+                android:elevation="10dp"
+                android:padding="12dp"
                 android:contentDescription="@string/user_icon"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp"
+                app:tint="@android:color/white" />
+
 
             <TextView
                 android:id="@+id/tvFullName"
@@ -233,39 +239,55 @@
                 android:layout_marginBottom="16dp"/>
 
             <!-- Edit Profile Button -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnEditProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Edit Profile"
                 android:textAllCaps="false"
+                android:background="@drawable/blue_gradient"
+                android:elevation="4dp"
+                android:paddingStart="50dp"
                 android:padding="12dp"
-                android:backgroundTint="#4CAF50"
                 android:textColor="@android:color/white"
-                android:layout_marginBottom="12dp"/>
+                android:layout_marginBottom="12dp"
+                android:drawableStart="@drawable/ic_edit"
+                android:drawablePadding="1dp"/>
 
             <!-- Change Password Button -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnChangePassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Change Password"
                 android:textAllCaps="false"
+                android:background="@drawable/btn_rounded"
+                android:elevation="4dp"
                 android:padding="12dp"
-                android:backgroundTint="#2196F3"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="12dp"/>
+                android:paddingStart="50dp"
+                android:backgroundTint="@color/white"
+                android:textColor="@color/black"
+                android:layout_marginBottom="12dp"
+                android:drawableStart="@drawable/ic_lock"
+                android:drawableTint="@color/black"
+                android:drawablePadding="1dp"/>
 
             <!-- Logout Button -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Logout"
                 android:textAllCaps="false"
+                android:background="@drawable/bg_logout_field"
+                android:elevation="4dp"
                 android:padding="12dp"
-                android:backgroundTint="#FF0000"
-                android:textColor="@android:color/white"/>
+                android:paddingStart="50dp"
+                android:textColor="#C11E1E"
+                android:layout_marginBottom="12dp"
+                android:drawableStart="@drawable/ic_logout"
+                android:drawableTint="#C11E1E"
+                android:drawablePadding="1dp"/>
         </LinearLayout>
 
         <!-- Progress Bar -->

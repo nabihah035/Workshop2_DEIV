@@ -20,8 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DEIV"
         tools:targetApi="31">
+        <!-- Splash Activity as Launcher -->
         <activity
-            android:name=".login.WelcomeActivity"
+            android:name=".login.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,6 +30,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".login.WelcomeActivity"
+            android:exported="false" />
         <activity
             android:name=".login.LoginActivity"
             android:exported="false" />
