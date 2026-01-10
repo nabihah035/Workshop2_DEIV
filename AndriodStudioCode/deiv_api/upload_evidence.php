@@ -70,8 +70,7 @@ try {
     $conn->begin_transaction();
     
     // First, verify the user exists and is active (optional security check)
-    // NOTE: Table name is 'user' not 'users'
-    $user_check = $conn->prepare("SELECT User_id FROM user WHERE User_id = ? AND status = 'Active'");
+    $user_check = $conn->prepare("SELECT User_id, username FROM user WHERE User_id = ? AND status = 'Active'");
     $user_check->bind_param("i", $user_id);
     $user_check->execute();
     $user_result = $user_check->get_result();
@@ -79,10 +78,12 @@ try {
     if ($user_result->num_rows == 0) {
         throw new Exception("User not found or inactive");
     }
+    $user = $user_result->fetch_assoc();
+    $username = $user['username'];
     $user_check->close();
     
-    // Verify the case exists (table name is 'case_table' not 'cases')
-    $case_check = $conn->prepare("SELECT Case_id FROM case_table WHERE Case_id = ?");
+    // Verify the case exists and get case name
+    $case_check = $conn->prepare("SELECT Case_id, case_name FROM case_table WHERE Case_id = ?");
     $case_check->bind_param("i", $case_id);
     $case_check->execute();
     $case_result = $case_check->get_result();
@@ -90,6 +91,8 @@ try {
     if ($case_result->num_rows == 0) {
         throw new Exception("Case not found");
     }
+    $case = $case_result->fetch_assoc();
+    $case_name = $case['case_name'];
     $case_check->close();
     
     // Insert into evidence table - upload_date should be date format
@@ -108,7 +111,7 @@ try {
     $stmt->close();
     
     // Create audit trail - action must be one of: Upload, Verify, Delete, View
-    $action = "Upload"; // Changed to match enum
+    $action = "Upload";
     $audit_stmt = $conn->prepare("INSERT INTO audit_trail (action, date_time, ip_address, User_id, Evidence_id, Case_id) VALUES (?, NOW(), ?, ?, ?, ?)");
     $audit_stmt->bind_param("ssiii", $action, $ip_address, $user_id, $evidence_id, $case_id);
 
@@ -119,14 +122,20 @@ try {
     
     $audit_stmt->close();
     
-    // Optional: Create notification for evidence upload
-    $notification_message = "New evidence uploaded: " . $file_name;
-    $notification_stmt = $conn->prepare("INSERT INTO notification (message, status, date, User_id, Evidence_id) VALUES (?, 'Unread', CURDATE(), ?, ?)");
-    $notification_stmt->bind_param("sii", $notification_message, $user_id, $evidence_id);
-    $notification_stmt->execute();
-    $notification_stmt->close();
+    // ============================================
+    // ENHANCED NOTIFICATION SYSTEM
+    // ============================================
     
-    // Commit transaction
+    // 1. Create notification for the user who uploaded the evidence
+    $message_to_uploader = "You have successfully uploaded evidence: '$file_name' for case '$case_name'";
+    $notification_stmt = $conn->prepare("INSERT INTO notification (message, status, date, User_id, Evidence_id, Case_id) VALUES (?, 'Unread', CURDATE(), ?, ?, ?)");
+    $notification_stmt->bind_param("siii", $message_to_uploader, $user_id, $evidence_id, $case_id);
+    
+    if (!$notification_stmt->execute()) {
+        error_log("Notification creation error: " . $conn->error);
+        // Continue even if notification fails
+    }
+    $notification_stmt->close();
     $conn->commit();
     
     // Return success response
@@ -137,7 +146,9 @@ try {
         "file_name" => $file_name,
         "upload_date" => $upload_date_formatted,
         "case_id" => $case_id,
-        "user_id" => $user_id
+        "user_id" => $user_id,
+        "case_name" => $case_name,
+        "notifications_created" => true
     ]);
     
 } catch (Exception $e) {
