@@ -15,7 +15,6 @@ import com.example.deiv.api.ApiService
 import com.example.deiv.login.Logout
 import com.example.deiv.login.SessionManager
 import com.example.deiv.model.UserProfile
-import com.google.gson.Gson
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -111,13 +110,6 @@ class UserFragment : Fragment() {
         tvOrganization.text = "Please login to view profile"
         tvCreatedAt.text = "-"
 
-        // Create a "Login" button message
-        val loginHint = TextView(requireContext())
-        loginHint.text = "Please login to access profile features"
-        loginHint.textAlignment = View.TEXT_ALIGNMENT_CENTER
-        loginHint.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
-
-        // You might want to add this to your layout dynamically or just show a toast
         Toast.makeText(requireContext(), "Please login to access profile features", Toast.LENGTH_LONG).show()
     }
 
@@ -273,8 +265,12 @@ class UserFragment : Fragment() {
     private fun updateUserProfile(firstName: String, lastName: String, username: String) {
         progressBar.visibility = View.VISIBLE
 
-        // Create form data for POST request
+        // Get user ID from session
+        val userId = sessionManager.getUserId()
+
+        // Create form data for POST request - ADD USER_ID
         val formBody = FormBody.Builder()
+            .add("user_id", userId.toString())  // Add user_id parameter
             .add("first_name", firstName)
             .add("last_name", lastName)
             .add("username", username)
@@ -308,18 +304,29 @@ class UserFragment : Fragment() {
 
                             if (status == "success") {
                                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+
                                 // Update current user object
                                 currentUser.first_name = firstName
                                 currentUser.last_name = lastName
                                 currentUser.username = username
                                 currentUser.full_name = "$firstName $lastName"
 
+                                // IMPORTANT: Update session with new username
+                                sessionManager.createLoginSession(
+                                    userId = userId,
+                                    username = username,
+                                    name = currentUser.full_name,
+                                    role = currentUser.role
+                                )
+
                                 // Update display
                                 displayUserData(currentUser)
+
+                                Log.d("UserFragment", "Session updated after profile edit: ${sessionManager.getSessionInfo()}")
                             } else {
                                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                             }
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             Toast.makeText(requireContext(), "Error parsing response", Toast.LENGTH_SHORT).show()
                         }
                     } else {
@@ -388,8 +395,12 @@ class UserFragment : Fragment() {
     private fun changePassword(currentPassword: String, newPassword: String) {
         progressBar.visibility = View.VISIBLE
 
-        // Create form data for POST request
+        // Get user ID from session
+        val userId = sessionManager.getUserId()
+
+        // Create form data for POST request - ADD USER_ID
         val formBody = FormBody.Builder()
+            .add("user_id", userId.toString())  // Add user_id parameter
             .add("current_password", currentPassword)
             .add("new_password", newPassword)
             .build()
@@ -422,11 +433,10 @@ class UserFragment : Fragment() {
 
                             if (status == "success") {
                                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                                // Clear password fields in dialog if you keep it open
                             } else {
                                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                             }
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             Toast.makeText(requireContext(), "Error parsing response", Toast.LENGTH_SHORT).show()
                         }
                     } else {

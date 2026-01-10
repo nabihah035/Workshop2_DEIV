@@ -21,6 +21,8 @@ class SessionManager(context: Context) {
 
     @SuppressLint("UseKtx")
     fun createLoginSession(userId: Int, username: String, name: String, role: String = "") {
+        Log.d("SessionManager", "Creating login session: UserID=$userId, Username=$username, Name=$name")
+
         prefs.edit()
             .putBoolean(KEY_IS_LOGGED_IN, true)
             .putInt(KEY_USER_ID, userId)
@@ -28,6 +30,9 @@ class SessionManager(context: Context) {
             .putString(KEY_NAME, name)
             .putString(KEY_ROLE, role)
             .apply()
+
+        // Verify the session was saved
+        Log.d("SessionManager", "Session saved - isLoggedIn: ${isLoggedIn()}, UserID: ${getUserId()}")
     }
 
     // Add this method to save user ID specifically
@@ -36,24 +41,40 @@ class SessionManager(context: Context) {
         prefs.edit()
             .putInt(KEY_USER_ID, userId)
             .apply()
+        Log.d("SessionManager", "User ID set to: $userId")
     }
 
     fun isLoggedIn(): Boolean {
-        return prefs.getBoolean(KEY_IS_LOGGED_IN, false)
+        val loggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
+        Log.d("SessionManager", "isLoggedIn() returning: $loggedIn")
+        return loggedIn
     }
 
     fun getUserId(): Int {
-        return prefs.getInt(KEY_USER_ID, -1).also {
-            Log.d("SessionManager", "Retrieved user ID: $it")
-        }
+        val userId = prefs.getInt(KEY_USER_ID, -1)
+        Log.d("SessionManager", "getUserId() returning: $userId")
+        return userId
+    }
+
+    fun getUsername(): String {
+        return prefs.getString(KEY_USERNAME, "") ?: ""
     }
 
     fun getName(): String {
         return prefs.getString(KEY_NAME, "") ?: ""
     }
 
+    fun getRole(): String {
+        return prefs.getString(KEY_ROLE, "") ?: ""
+    }
+
+    fun getSessionInfo(): String {
+        return "UserID: ${getUserId()}, Username: ${getUsername()}, Name: ${getName()}, Role: ${getRole()}"
+    }
+
     @SuppressLint("UseKtx")
     fun clearSessionData() {
+        Log.d("SessionManager", "Clearing session data")
         prefs.edit()
             .remove(KEY_USER_ID)
             .remove(KEY_NAME)
@@ -63,9 +84,11 @@ class SessionManager(context: Context) {
     }
 
     fun logout() {
+        Log.d("SessionManager", "Logging out user")
         clearSessionData()
         prefs.edit {
             putBoolean(KEY_IS_LOGGED_IN, false)
         }
+        Log.d("SessionManager", "After logout - isLoggedIn: ${isLoggedIn()}")
     }
 }

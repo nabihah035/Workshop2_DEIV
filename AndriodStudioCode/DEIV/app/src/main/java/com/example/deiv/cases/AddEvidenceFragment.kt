@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import com.example.deiv.login.SessionManager
 import android.util.Log
+import com.example.deiv.MainActivity
 
 class AddEvidenceFragment : Fragment() {
 
@@ -38,7 +39,7 @@ class AddEvidenceFragment : Fragment() {
     private var selectedFileUri: Uri? = null
     private var selectedFileName: String = ""
     private var caseId: Int = -1
-    private var userId: Int = -1
+    private lateinit var sessionManager: SessionManager
 
     @SuppressLint("SetTextI18n")
     private val pickMediaLauncher = registerForActivityResult(
@@ -60,6 +61,9 @@ class AddEvidenceFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_add_evidence, container, false)
 
+        // Initialize SessionManager
+        sessionManager = SessionManager(requireContext())
+
         // Initialize views
         tvTitle = view.findViewById(R.id.tvTitle)
         tvSubtitle = view.findViewById(R.id.tvSubtitle)
@@ -73,15 +77,13 @@ class AddEvidenceFragment : Fragment() {
 
         // Get case ID from arguments
         caseId = arguments?.getInt("case_id", -1) ?: -1
-        userId = arguments?.getInt("user_id", -1) ?: -1
 
         if (caseId > 0) {
             tvSubtitle.text = "Case #$caseId - Upload evidence files"
         }
 
-        debugSessionInfo()
-
         setupListeners()
+        checkLoginStatus()
 
         return view
     }
@@ -154,6 +156,22 @@ class AddEvidenceFragment : Fragment() {
         }
     }
 
+    private fun checkLoginStatus() {
+        if (!sessionManager.isLoggedIn()) {
+            Toast.makeText(
+                requireContext(),
+                "You need to login to upload evidence",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            // Redirect to MainActivity which should handle login
+            val intent = Intent(requireContext(), MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            requireActivity().finish()
+        }
+    }
+
     private fun uploadEvidence() {
         if (caseId <= 0) {
             Toast.makeText(requireContext(), "Invalid case ID", Toast.LENGTH_SHORT).show()
@@ -161,8 +179,7 @@ class AddEvidenceFragment : Fragment() {
         }
 
         // Get user ID from session manager
-        val session = SessionManager(requireContext())
-        userId = session.getUserId()
+        val userId = sessionManager.getUserId()
 
         if (userId <= 0) {
             Toast.makeText(
@@ -170,6 +187,7 @@ class AddEvidenceFragment : Fragment() {
                 "User not authenticated. Please login again.",
                 Toast.LENGTH_SHORT
             ).show()
+            checkLoginStatus()
             return
         }
 
@@ -178,7 +196,7 @@ class AddEvidenceFragment : Fragment() {
 
         // Generate metadata
         val hashValue = generateRandomHash()
-        val uploadDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+        val uploadDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
         // Create request
         val queue = Volley.newRequestQueue(requireContext())
@@ -248,8 +266,8 @@ class AddEvidenceFragment : Fragment() {
                 params["status"] = "Pending"
                 params["hash_value"] = hashValue
                 params["case_id"] = caseId.toString()
-                // ADD user_id back to params since PHP needs it
-                params["user_id"] = userId.toString()  // Add this line back
+                // ADD user_id from session manager
+                params["user_id"] = userId.toString()
                 return params
             }
 
@@ -273,23 +291,5 @@ class AddEvidenceFragment : Fragment() {
         val randomBytes = ByteArray(32)
         Random().nextBytes(randomBytes)
         return randomBytes.joinToString("") { "%02x".format(it) }
-    }
-
-    private fun debugSessionInfo() {
-        val session = SessionManager(requireContext())
-        val userId = session.getUserId()
-        val isLoggedIn = session.isLoggedIn()
-        val username = session.getName()
-
-        Log.d("SessionDebug", "User ID: $userId")
-        Log.d("SessionDebug", "Is Logged In: $isLoggedIn")
-        Log.d("SessionDebug", "Username: $username")
-
-        // Show in Toast for testing
-        Toast.makeText(
-            requireContext(),
-            "Session Debug - UserID: $userId, LoggedIn: $isLoggedIn",
-            Toast.LENGTH_LONG
-        ).show()
     }
 }

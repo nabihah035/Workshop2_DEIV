@@ -85,14 +85,18 @@ class CaseFragment : Fragment() {
         val session = SessionManager(requireContext())
         val userId = session.getUserId()
 
+        Log.d("CaseFragment", "Loading cases for UserID: $userId")
+
         if (userId <= 0) {
             progressBar.visibility = View.GONE
             swipeRefresh.isRefreshing = false
+            Toast.makeText(requireContext(), "Please login to view cases", Toast.LENGTH_SHORT).show()
             return
         }
 
         // Use centralized API URL
         val url = "${ApiService.CASE_LIST}?user_id=$userId"
+        Log.d("CaseFragment", "API URL: $url")
 
         val queue = Volley.newRequestQueue(requireContext())
         val stringRequest = StringRequest(
@@ -115,19 +119,23 @@ class CaseFragment : Fragment() {
                                 caseAdapter.setData(casesArray)
                             } else {
                                 tvNoCases.visibility = View.VISIBLE
+                                tvNoCases.text = "No cases found"
                                 recyclerCases.visibility = View.GONE
                             }
                         } else {
                             tvNoCases.visibility = View.VISIBLE
+                            tvNoCases.text = "No cases available"
                             recyclerCases.visibility = View.GONE
                         }
                     } else {
                         tvNoCases.visibility = View.VISIBLE
+                        tvNoCases.text = "Error loading cases"
                         recyclerCases.visibility = View.GONE
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     tvNoCases.visibility = View.VISIBLE
+                    tvNoCases.text = "Error: ${e.message}"
                     recyclerCases.visibility = View.GONE
                 }
             },
@@ -135,6 +143,7 @@ class CaseFragment : Fragment() {
                 progressBar.visibility = View.GONE
                 swipeRefresh.isRefreshing = false
                 tvNoCases.visibility = View.VISIBLE
+                tvNoCases.text = "Network error"
                 recyclerCases.visibility = View.GONE
                 error.printStackTrace()
             }

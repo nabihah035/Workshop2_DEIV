@@ -12,19 +12,33 @@ import com.example.deiv.login.LoginActivity
 import com.example.deiv.login.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.widget.ImageButton
+import android.widget.Toast
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
+
+    private fun checkSession() {
+        val sessionManager = SessionManager(this)
+        if (!sessionManager.isLoggedIn()) {
+            // Redirect to login if not logged in
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+            finish()
+        } else {
+            // User is logged in, show welcome message
+            val username = sessionManager.getUsername()
+            Toast.makeText(this, "Welcome back, $username!", Toast.LENGTH_SHORT).show()
+
+            // Debug log
+            Log.d("MainActivity", "Session info: ${sessionManager.getSessionInfo()}")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        /* ================= SESSION CHECK ================= */
-        val session = SessionManager(this)
-        if (!session.isLoggedIn()) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-            return
-        }
+        // Check session FIRST before setting content view
+        checkSession()
 
         /* ================= EDGE TO EDGE ================= */
         enableEdgeToEdge()
