@@ -14,13 +14,23 @@ if ($user_id <= 0) {
     exit;
 }
 
-// Turn off error reporting for production
-error_reporting(0);
-ini_set('display_errors', 0);
+// Verify user exists
+$checkUser = $conn->prepare("SELECT User_id FROM user WHERE User_id = ? AND status = 'Active'");
+$checkUser->bind_param("i", $user_id);
+$checkUser->execute();
+$checkResult = $checkUser->get_result();
+
+if ($checkResult->num_rows == 0) {
+    echo json_encode([
+        "status" => "error",
+        "message" => "User not found or inactive"
+    ]);
+    exit;
+}
 
 try {
     /* TOTAL CASES */
-    $stmt1 = $conn->prepare("SELECT COUNT(*) AS total FROM `case` WHERE User_id = ?");
+    $stmt1 = $conn->prepare("SELECT COUNT(*) AS total FROM `case_table` WHERE User_id = ?");
     $stmt1->bind_param("i", $user_id);
     $stmt1->execute();
     $result1 = $stmt1->get_result();
@@ -28,7 +38,12 @@ try {
     $totalCases = $totalCasesRow ? $totalCasesRow['total'] : 0;
 
     /* TOTAL EVIDENCE */
-    $stmt2 = $conn->prepare("SELECT COUNT(*) AS total FROM evidence WHERE Case_id IN (SELECT Case_id FROM `case` WHERE User_id = ?)");
+    $stmt2 = $conn->prepare("
+        SELECT COUNT(*) AS total 
+        FROM evidence e
+        INNER JOIN case_table c ON e.Case_id = c.Case_id
+        WHERE c.User_id = ?
+    ");
     $stmt2->bind_param("i", $user_id);
     $stmt2->execute();
     $result2 = $stmt2->get_result();
@@ -36,7 +51,13 @@ try {
     $totalEvidence = $totalEvidenceRow ? $totalEvidenceRow['total'] : 0;
 
     /* RECENT CASES */
-    $stmt3 = $conn->prepare("SELECT Case_id, case_name, status, created_at FROM `case` WHERE User_id = ? ORDER BY Case_id DESC LIMIT 5");
+    $stmt3 = $conn->prepare("
+        SELECT Case_id, case_name, status, created_at 
+        FROM `case_table` 
+        WHERE User_id = ? 
+        ORDER BY Case_id DESC 
+        LIMIT 5
+    ");
     $stmt3->bind_param("i", $user_id);
     $stmt3->execute();
     $result3 = $stmt3->get_result();
@@ -76,9 +97,16 @@ try {
     ]);
 
 } catch (Exception $e) {
+    // Return a more informative error
+    http_response_code(500);
     echo json_encode([
         "status" => "error",
-        "message" => "Database error: " . $e->getMessage()
+        "message" => "Database error: " . $e->getMessage(),
+        "debug_info" => [
+            "user_id" => $user_id,
+            "error_file" => $e->getFile(),
+            "error_line" => $e->getLine()
+        ]
     ]);
 }
 

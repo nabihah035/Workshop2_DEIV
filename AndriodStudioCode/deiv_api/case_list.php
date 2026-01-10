@@ -20,7 +20,7 @@ ini_set('display_errors', 0);
 
 try {
     /* GET ALL CASES FOR USER */
-    $stmt = $conn->prepare("SELECT Case_id, case_name, description, status, created_at FROM `case` WHERE User_id = ? ORDER BY Case_id DESC");
+    $stmt = $conn->prepare("SELECT Case_id, case_name, description, status, created_at FROM `case_table` WHERE User_id = ? ORDER BY Case_id DESC");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();

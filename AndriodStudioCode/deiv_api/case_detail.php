@@ -11,7 +11,7 @@ if ($case_id <= 0) {
 
 try {
     // Get case info
-    $stmt = $conn->prepare("SELECT Case_id, case_name, description, status, User_id FROM `case` WHERE Case_id = ?");
+    $stmt = $conn->prepare("SELECT Case_id, case_name, description, status, User_id FROM `case_table` WHERE Case_id = ?");
     $stmt->bind_param("i", $case_id);
     $stmt->execute();
     $result = $stmt->get_result();

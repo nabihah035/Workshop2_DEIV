@@ -2,7 +2,7 @@
 $host = "localhost";
 $user = "root"; 
 $pass = ""; 
-$db   = "deiv_db";
+$db   = "deiv";
 
 $conn = mysqli_connect($host, $user, $pass, $db);
 
