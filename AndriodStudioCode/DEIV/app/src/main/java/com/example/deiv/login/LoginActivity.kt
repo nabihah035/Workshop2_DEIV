@@ -27,6 +27,7 @@ import java.util.concurrent.Executors
 import com.example.deiv.R
 import com.example.deiv.MainActivity
 import com.example.deiv.api.ApiService
+import android.util.Log
 
 class LoginActivity : AppCompatActivity() {
     private var etUsername: EditText? = null
@@ -35,6 +36,7 @@ class LoginActivity : AppCompatActivity() {
     private var tvCreateAccount: TextView? = null
     private lateinit var sessionManager: SessionManager
 
+    @SuppressLint("ObsoleteSdkInt")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -191,24 +193,37 @@ class LoginActivity : AppCompatActivity() {
                         return
                     }
 
-                    // ✅ UPDATED: Create login session with all required parameters
+                    // ✅ FIXED: Create login session with user_id as primary key
                     sessionManager.createLoginSession(
                         userId = userId,
-                        username = username,  // Pass the username from login form
-                        name = name,          // Pass the name from API response
-                        role = role           // Pass the role from API response
+                        username = username,
+                        name = name,
+                        role = role
                     )
 
-                    // Successful login for active user
-                    Toast.makeText(
-                        this@LoginActivity,
-                        "Welcome $name ($role)",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    // Debug log to verify session
+                    Log.d("LoginActivity", "Session created - UserID: $userId, Username: $username")
 
-                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                    startActivity(intent)
-                    finish()
+                    // Verify session was saved
+                    val savedUserId = sessionManager.getUserId()
+                    if (savedUserId == userId) {
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "Welcome $name ($role)",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "Session error: Failed to save login data",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        resetLoginButton()
+                    }
                 }
                 "inactive" -> {
                     // Account not yet approved

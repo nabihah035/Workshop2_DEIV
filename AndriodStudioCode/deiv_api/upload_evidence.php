@@ -14,6 +14,7 @@ $status = $_POST['status'] ?? 'Pending';
 $hash_value = $_POST['hash_value'] ?? '';
 $case_id = intval($_POST['case_id'] ?? 0);
 
+
 if (empty($file_name) || $case_id <= 0) {
     echo json_encode(["status" => "error", "message" => "Missing required fields"]);
     exit;
@@ -37,5 +38,6 @@ try {
     echo json_encode(["status" => "error", "message" => "Database error: " . $e->getMessage()]);
 }
 
+$stmt->close();
 $conn->close();
 ?>
