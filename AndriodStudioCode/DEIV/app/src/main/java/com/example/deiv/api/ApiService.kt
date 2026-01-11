@@ -1,7 +1,8 @@
 package com.example.deiv.api
 
 object ApiService {
-    const val BASE_URL = "http://172.26.83.131/deiv_api/"
+    // Fixed URL to match the exact folder names: Workshop2_DEIV and AndriodStudioCode
+    const val BASE_URL = "http://10.219.21.211/Workshop2_DEIV/AndriodStudioCode/deiv_api/"
 
     // Case related endpoints
     const val CASE_REGISTER = "${BASE_URL}case_reg.php"
@@ -19,6 +20,12 @@ object ApiService {
     const val REGISTER = "${BASE_URL}register.php"
     //login
     const val LOGIN = "${BASE_URL}login.php"
+    const val FORGOT_PASSWORD = "${BASE_URL}forgot_password.php"
     //Logout
     const val LOGOUT = "${BASE_URL}logout.php"
+
+    // Notification endpoints
+    const val NOTIFICATION_LIST = "${BASE_URL}notification_list.php"
+    const val NOTIFICATION_MARK_READ = "${BASE_URL}notification_mark_read.php"
+
 }

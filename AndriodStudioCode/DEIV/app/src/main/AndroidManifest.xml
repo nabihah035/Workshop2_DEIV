@@ -19,6 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DEIV"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <!-- Splash Activity as Launcher -->
         <activity
@@ -38,6 +39,12 @@
             android:exported="false" />
         <activity
             android:name=".login.RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".login.ForgotPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".notification.NotificationActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
