@@ -1,7 +1,7 @@
 package com.example.deiv.api
 
 object ApiService {
-    const val BASE_URL = "http://172.26.83.131/deiv_api/"
+    const val BASE_URL = "http://192.168.1.10/deiv_api/"
 
     // Case related endpoints
     const val CASE_REGISTER = "${BASE_URL}case_reg.php"
