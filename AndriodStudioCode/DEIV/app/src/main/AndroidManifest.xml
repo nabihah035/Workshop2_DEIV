@@ -40,6 +40,9 @@
             android:name=".login.RegisterActivity"
             android:exported="false" />
         <activity
+            android:name=".login.ForgotPasswordActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="false" />
 

@@ -19,6 +19,12 @@ object ApiService {
     const val REGISTER = "${BASE_URL}register.php"
     //login
     const val LOGIN = "${BASE_URL}login.php"
+    const val FORGOT_PASSWORD = "${BASE_URL}forgot_password.php"
     //Logout
     const val LOGOUT = "${BASE_URL}logout.php"
+
+    // Notification endpoints
+    const val NOTIFICATION_LIST = "${BASE_URL}notification_list.php"
+    const val NOTIFICATION_MARK_READ = "${BASE_URL}notification_mark_read.php"
+
 }
