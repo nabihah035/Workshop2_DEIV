@@ -4,10 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.deiv.R
+import com.example.deiv.api.ApiService
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import org.json.JSONObject
@@ -17,8 +21,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.util.concurrent.Executors
-import com.example.deiv.R
-import com.example.deiv.api.ApiService
 
 class RegisterActivity : AppCompatActivity() {
     // UI Elements
@@ -27,10 +29,20 @@ class RegisterActivity : AppCompatActivity() {
     private var etUsername: EditText? = null
     private var etEmail: EditText? = null
     private var etPassword: EditText? = null
+    private var etOrganization: EditText? = null
+    private var spinnerRole: Spinner? = null
     private var btnRegister: Button? = null
 
     // Firebase Instance
     private var fStore: FirebaseFirestore? = null
+
+    // Role options
+    private val roleOptions = arrayOf(
+        "Digital Forensic Investigator",
+        "Law Agencies",
+        "Legal Professionals",
+        "Institution"
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,12 +50,24 @@ class RegisterActivity : AppCompatActivity() {
 
         fStore = FirebaseFirestore.getInstance()
 
+        // Initialize UI elements
         etFirstName = findViewById(R.id.etFirstName)
         etLastName = findViewById(R.id.etLastName)
         etUsername = findViewById(R.id.etRegUsername)
         etEmail = findViewById(R.id.etEmail)
         etPassword = findViewById(R.id.etRegPassword)
+        etOrganization = findViewById(R.id.etOrganization)
+        spinnerRole = findViewById(R.id.spinnerRole)
         btnRegister = findViewById(R.id.btnRegister)
+
+        // Setup role spinner
+        setupRoleSpinner()
+
+        // Setup login text click listener
+        findViewById<android.widget.TextView>(R.id.tvLogin).setOnClickListener {
+            startActivity(Intent(applicationContext, LoginActivity::class.java))
+            finish()
+        }
 
         btnRegister?.setOnClickListener {
             val firstName = etFirstName?.text?.toString()?.trim() ?: ""
@@ -51,17 +75,35 @@ class RegisterActivity : AppCompatActivity() {
             val username = etUsername?.text?.toString()?.trim() ?: ""
             val email = etEmail?.text?.toString()?.trim() ?: ""
             val password = etPassword?.text?.toString()?.trim() ?: ""
+            val organization = etOrganization?.text?.toString()?.trim() ?: ""
+            val selectedRole = spinnerRole?.selectedItem?.toString() ?: ""
 
             if (firstName.isEmpty() || lastName.isEmpty() ||
-                username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                username.isEmpty() || email.isEmpty() ||
+                password.isEmpty() || organization.isEmpty() ||
+                selectedRole.isEmpty()) {
                 Toast.makeText(this@RegisterActivity, "Please fill all fields", Toast.LENGTH_SHORT).show()
             } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                // Optional: Add email validation
                 Toast.makeText(this@RegisterActivity, "Please enter a valid email", Toast.LENGTH_SHORT).show()
             } else {
-                registerToMySQL(firstName, lastName, username, email, password)
+                registerToMySQL(firstName, lastName, username, email, password, organization, selectedRole)
             }
         }
+    }
+
+    private fun setupRoleSpinner() {
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            roleOptions
+        )
+
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        // Apply the adapter to the spinner
+        spinnerRole?.adapter = adapter
     }
 
     private fun registerToMySQL(
@@ -69,22 +111,25 @@ class RegisterActivity : AppCompatActivity() {
         lname: String,
         username: String,
         email: String,
-        password: String
+        password: String,
+        organization: String,
+        role: String
     ) {
         val executor = Executors.newSingleThreadExecutor()
         val handler = Handler(Looper.getMainLooper())
 
         executor.execute {
             try {
-                // 1. Prepare POST data
+                // 1. Prepare POST data with role and organization
                 val postData = StringBuilder()
                     .append("username=").append(URLEncoder.encode(username, "UTF-8"))
                     .append("&password=").append(URLEncoder.encode(password, "UTF-8"))
                     .append("&email=").append(URLEncoder.encode(email, "UTF-8"))
                     .append("&first_name=").append(URLEncoder.encode(fname, "UTF-8"))
                     .append("&last_name=").append(URLEncoder.encode(lname, "UTF-8"))
-                    .append("&organization=").append(URLEncoder.encode("UTEM", "UTF-8"))
-                    .append("&role=user")
+                    .append("&organization=").append(URLEncoder.encode(organization, "UTF-8"))
+                    .append("&role=").append(URLEncoder.encode(role, "UTF-8"))
+                    .append("&status=Inactive") // Default status for new users
                     .toString()
 
                 // 2. Connect using ApiService.REGISTER
@@ -125,7 +170,7 @@ class RegisterActivity : AppCompatActivity() {
 
                 // 6. Handle response on main thread
                 handler.post {
-                    handleRegisterResponse(response.toString(), username, email)
+                    handleRegisterResponse(response.toString(), username, email, role, organization)
                 }
             } catch (e: Exception) {
                 handler.post {
@@ -139,7 +184,13 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleRegisterResponse(response: String, username: String, email: String) {
+    private fun handleRegisterResponse(
+        response: String,
+        username: String,
+        email: String,
+        role: String,
+        organization: String
+    ) {
         try {
             // Check for PHP/HTML errors
             if (response.contains("<br") || response.contains("<!DOCTYPE") || response.contains("<html")) {
@@ -154,11 +205,21 @@ class RegisterActivity : AppCompatActivity() {
             val jsonResponse = JSONObject(response)
             val status = jsonResponse.optString("status", "error")
             val message = jsonResponse.optString("message", "")
+            val userId = jsonResponse.optInt("user_id", 0)
 
             when (status.lowercase()) {
                 "success" -> {
-                    // MySQL registration successful, now save to Firebase
-                    saveTokenToFirebase(username, email)
+                    if (userId > 0) {
+                        // MySQL registration successful, now save to Firebase
+                        saveTokenToFirebase(username, email, role, organization, userId)
+                    } else {
+                        Toast.makeText(
+                            this@RegisterActivity,
+                            "Registration successful but user ID not returned",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navigateToLogin()
+                    }
                 }
                 "error" -> {
                     // Handle specific error messages
@@ -203,7 +264,13 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveTokenToFirebase(username: String, email: String) {
+    private fun saveTokenToFirebase(
+        username: String,
+        email: String,
+        role: String,
+        organization: String,
+        userId: Int
+    ) {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 Toast.makeText(
@@ -217,15 +284,18 @@ class RegisterActivity : AppCompatActivity() {
             val token = task.result ?: ""
 
             val userData = hashMapOf(
+                "user_id" to userId,
                 "username" to username,
                 "email" to email,
-                "status" to "inactive",
+                "role" to role,
+                "organization" to organization,
+                "status" to "Inactive",
                 "fcmToken" to token,
                 "registrationDate" to System.currentTimeMillis()
             )
 
             fStore?.collection("users")
-                ?.document(email)
+                ?.document(email) // Using email as document ID, but you could use userId
                 ?.set(userData)
                 ?.addOnSuccessListener {
                     Toast.makeText(
@@ -233,11 +303,7 @@ class RegisterActivity : AppCompatActivity() {
                         "Registration Complete! Please wait for Admin Approval.",
                         Toast.LENGTH_LONG
                     ).show()
-
-                    // Clear form and navigate to login
-                    clearForm()
-                    startActivity(Intent(applicationContext, LoginActivity::class.java))
-                    finish()
+                    navigateToLogin()
                 }
                 ?.addOnFailureListener { e ->
                     Toast.makeText(
@@ -245,8 +311,16 @@ class RegisterActivity : AppCompatActivity() {
                         "Firestore Error: ${e.localizedMessage}",
                         Toast.LENGTH_SHORT
                     ).show()
+                    // Even if Firebase fails, user is registered in MySQL, so navigate to login
+                    navigateToLogin()
                 }
         }
+    }
+
+    private fun navigateToLogin() {
+        clearForm()
+        startActivity(Intent(applicationContext, LoginActivity::class.java))
+        finish()
     }
 
     private fun clearForm() {
@@ -255,5 +329,8 @@ class RegisterActivity : AppCompatActivity() {
         etUsername?.setText("")
         etEmail?.setText("")
         etPassword?.setText("")
+        etOrganization?.setText("")
+        // Reset spinner to first position
+        spinnerRole?.setSelection(0)
     }
 }

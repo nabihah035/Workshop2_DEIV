@@ -20,16 +20,12 @@ class MainActivity : AppCompatActivity() {
     private fun checkSession() {
         val sessionManager = SessionManager(this)
         if (!sessionManager.isLoggedIn()) {
-            // Redirect to login if not logged in
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
             finish()
         } else {
-            // User is logged in, show welcome message
             val username = sessionManager.getUsername()
-            Toast.makeText(this, "Welcome back, $username!", Toast.LENGTH_SHORT).show()
-
-            // Debug log
+            // Toast.makeText(this, "Welcome back, $username!", Toast.LENGTH_SHORT).show()
             Log.d("MainActivity", "Session info: ${sessionManager.getSessionInfo()}")
         }
     }
@@ -37,10 +33,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Check session FIRST before setting content view
         checkSession()
-
-        /* ================= EDGE TO EDGE ================= */
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
@@ -50,23 +43,25 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        /* ================= NAV CONTROLLER ================= */
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
-        /* ================= BOTTOM NAV ================= */
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         bottomNav.setupWithNavController(navController)
 
-        /* ================= HEADER ICONS ================= */
         val btnNotification = findViewById<ImageButton>(R.id.btn_notification)
         val btnUser = findViewById<ImageButton>(R.id.btn_user)
 
         btnNotification.setOnClickListener {
-            startActivity(
-                Intent(this, com.example.deiv.notification.NotificationActivity::class.java)
-            )
+            Log.d("MainActivity", "Notification button clicked")
+            try {
+                val intent = Intent(this, com.example.deiv.notification.NotificationActivity::class.java)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error starting NotificationActivity: ${e.message}")
+                Toast.makeText(this, "Could not open notifications", Toast.LENGTH_SHORT).show()
+            }
         }
 
         btnUser.setOnClickListener {
