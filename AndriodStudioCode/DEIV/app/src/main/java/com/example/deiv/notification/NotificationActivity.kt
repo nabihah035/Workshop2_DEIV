@@ -2,6 +2,7 @@ package com.example.deiv.notification
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
@@ -16,6 +17,7 @@ import com.example.deiv.MainActivity
 import com.example.deiv.R
 import com.example.deiv.api.ApiService
 import com.example.deiv.login.SessionManager
+import org.json.JSONException
 
 class NotificationActivity : AppCompatActivity() {
 
@@ -81,25 +83,37 @@ class NotificationActivity : AppCompatActivity() {
         val request = JsonObjectRequest(
             Request.Method.GET, url, null,
             { response ->
-                notificationList.clear()
-                val array = response.getJSONArray("notifications")
+                try {
+                    notificationList.clear()
+                    
+                    if (response.has("notifications")) {
+                        val array = response.getJSONArray("notifications")
 
-                for (i in 0 until array.length()) {
-                    val obj = array.getJSONObject(i)
+                        for (i in 0 until array.length()) {
+                            val obj = array.getJSONObject(i)
 
-                    val notification = NotificationModel(
-                        obj.getInt("Notification_id"),
-                        obj.getString("message"),
-                        obj.getString("status"),
-                        obj.getString("date"),
-                        obj.optInt("Evidence_id")
-                    )
-                    notificationList.add(notification)
+                            val notification = NotificationModel(
+                                obj.getInt("Notification_id"),
+                                obj.getString("message"),
+                                obj.getString("status"),
+                                obj.getString("date"),
+                                obj.optInt("Evidence_id")
+                            )
+                            notificationList.add(notification)
+                        }
+                    } else {
+                        Log.d("NotificationActivity", "No notifications found in response")
+                    }
+                    adapter.notifyDataSetChanged()
+                    
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                    Toast.makeText(this, "Data Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
-                adapter.notifyDataSetChanged()
             },
-            {
-                Toast.makeText(this, "Failed to load notifications", Toast.LENGTH_SHORT).show()
+            { error ->
+                error.printStackTrace()
+                Toast.makeText(this, "Failed to load notifications: ${error.message}", Toast.LENGTH_SHORT).show()
             }
         )
 

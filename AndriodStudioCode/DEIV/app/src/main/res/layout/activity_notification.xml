@@ -16,7 +16,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
-        android:background="@android:color/white"
+        android:background="@color/primary_dark_blue"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -26,11 +26,11 @@
             android:id="@+id/btn_back"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="@drawable/icon_background"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_back"
             android:contentDescription="Back"
             android:scaleType="centerInside"
-            app:tint="@android:color/black" />
+            app:tint="@android:color/white" />
 
         <!-- Title -->
         <TextView
@@ -38,7 +38,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Notifications"
-            android:textColor="@android:color/black"
+            android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginStart="16dp"/>
@@ -63,7 +63,7 @@
             android:layout_weight="1"
             android:text="Unread"
             android:textAllCaps="false"
-            android:backgroundTint="@color/black"
+            android:backgroundTint="@color/primary_dark_blue"
             android:textColor="@android:color/white"/>
 
         <Button
@@ -74,8 +74,8 @@
             android:text="Read"
             android:textAllCaps="false"
             android:layout_marginStart="8dp"
-            android:backgroundTint="@color/gray"
-            android:textColor="@android:color/black"/>
+            android:backgroundTint="@color/primary_blue"
+            android:textColor="@android:color/white"/>
     </LinearLayout>
 
     <!-- ===== Notification List ===== -->
