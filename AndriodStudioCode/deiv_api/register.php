@@ -31,7 +31,7 @@ if (!in_array($role, $valid_roles)) {
 }
 
 // Check if username already exists
-$checkStmt = $conn->prepare("SELECT User_id FROM user WHERE username = ? OR email = ?");
+$checkStmt = $conn->prepare("SELECT User_id FROM `user` WHERE username = ? OR email = ?");
 $checkStmt->bind_param("ss", $username, $email);
 $checkStmt->execute();
 $checkResult = $checkStmt->get_result();
@@ -47,7 +47,7 @@ $checkStmt->close();
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
 // Insert new user with 'Inactive' status by default (as per your database schema)
-$insertStmt = $conn->prepare("INSERT INTO user (username, password, email, first_name, last_name, role, status, organization) VALUES (?, ?, ?, ?, ?, ?, 'Inactive', ?)");
+$insertStmt = $conn->prepare("INSERT INTO `user` (username, password, email, first_name, last_name, role, status, organization) VALUES (?, ?, ?, ?, ?, ?, 'Inactive', ?)");
 $insertStmt->bind_param("sssssss", $username, $hashed_password, $email, $first_name, $last_name, $role, $organization);
 
 if ($insertStmt->execute()) {
