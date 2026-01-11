@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+include 'db_connect.php';
 
 $user_id = $_GET['user_id'];
 $type = $_GET['type']; // read or unread
