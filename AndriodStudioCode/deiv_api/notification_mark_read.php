@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+include 'db_connect.php';
 
 $notification_id = $_POST['notification_id'];
 
