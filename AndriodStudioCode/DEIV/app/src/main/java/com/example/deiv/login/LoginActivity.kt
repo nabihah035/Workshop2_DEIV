@@ -34,6 +34,7 @@ class LoginActivity : AppCompatActivity() {
     private var etPassword: EditText? = null
     private var btnLogin: Button? = null
     private var tvCreateAccount: TextView? = null
+    private var tvForgotPassword: TextView? = null
     private lateinit var sessionManager: SessionManager
 
     @SuppressLint("ObsoleteSdkInt")
@@ -72,6 +73,7 @@ class LoginActivity : AppCompatActivity() {
         etPassword = findViewById(R.id.etPassword)
         btnLogin = findViewById(R.id.btnLogin)
         tvCreateAccount = findViewById(R.id.tvCreateAccount)
+        tvForgotPassword = findViewById(R.id.tvForgotPassword)
 
         btnLogin?.setOnClickListener {
             val user = etUsername?.text?.toString()?.trim() ?: ""
@@ -86,6 +88,10 @@ class LoginActivity : AppCompatActivity() {
 
         tvCreateAccount?.setOnClickListener {
             startActivity(Intent(applicationContext, RegisterActivity::class.java))
+        }
+
+        tvForgotPassword?.setOnClickListener {
+            startActivity(Intent(applicationContext, ForgotPasswordActivity::class.java))
         }
     }
 
