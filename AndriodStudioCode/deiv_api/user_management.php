@@ -500,9 +500,9 @@ $users = [];
                 
                 actionButtons += `</div>`;
 
-                // Insert HTML
+                // Insert HTML (show Firebase short id initially, then replace with local MySQL id)
                 tr.innerHTML = `
-                    <td><strong>${displayID}</strong></td>
+                    <td class="user-id-cell"><strong>${displayID}</strong></td>
                     <td>${username}</td>
                     <td>${email}</td>
                     <td>${fullName}</td>
@@ -511,8 +511,28 @@ $users = [];
                     <td>${org}</td>
                     <td>${actionButtons}</td>
                 `;
-                
+
+                // attach email as attribute to find it later when updating the ID
+                tr.setAttribute('data-email', email || '');
                 tableBody.appendChild(tr);
+
+                // Try to fetch the local XAMPP/MySQL User_id by email and replace the displayed ID
+                if (email) {
+                    fetch('get_user_by_email.php?email=' + encodeURIComponent(email) + '&testing=1')
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.success && data.user && data.user.User_id) {
+                                const userIdCell = tr.querySelector('.user-id-cell');
+                                if (userIdCell) {
+                                    userIdCell.innerHTML = '<strong>' + data.user.User_id + '</strong>';
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            // silently ignore - keep showing Firebase short id
+                            console.debug('Could not fetch local User_id for', email, err);
+                        });
+                }
             });
         }, (error) => {
             console.error("Firebase Error:", error);
