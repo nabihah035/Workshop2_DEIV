@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/customBottomNav"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:orientation="horizontal"
+    android:elevation="8dp">
+
+    <!-- Home -->
+    <LinearLayout
+        android:id="@+id/navHome"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingVertical="8dp">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
+
+            <View
+                android:id="@+id/bgHome"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bottom_nav_background"
+                android:alpha="1.0" />
+
+            <ImageView
+                android:id="@+id/iconHome"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_home"
+                android:tint="@color/blue_main" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/textHome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Home"
+            android:textSize="12sp"
+            android:textColor="@color/blue_main"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Case -->
+    <LinearLayout
+        android:id="@+id/navCase"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingVertical="8dp">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
+
+            <View
+                android:id="@+id/bgCase"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bottom_nav_background"
+                android:alpha="0" />
+
+            <ImageView
+                android:id="@+id/iconCase"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_folder"
+                android:tint="@color/nav_unselected" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/textCase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Case"
+            android:textSize="12sp"
+            android:textColor="@color/nav_unselected" />
+
+    </LinearLayout>
+
+    <!-- AI Scan -->
+    <LinearLayout
+        android:id="@+id/navAi"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingVertical="8dp">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
+
+            <View
+                android:id="@+id/bgAi"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bottom_nav_background"
+                android:alpha="0" />
+
+            <ImageView
+                android:id="@+id/iconAi"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_ai"
+                android:tint="@color/nav_unselected" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/textAi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI Scan"
+            android:textSize="12sp"
+            android:textColor="@color/nav_unselected" />
+
+    </LinearLayout>
+
+    <!-- User -->
+    <LinearLayout
+        android:id="@+id/navUser"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingVertical="8dp">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
+
+            <View
+                android:id="@+id/bgUser"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bottom_nav_background"
+                android:alpha="0" />
+
+            <ImageView
+                android:id="@+id/iconUser"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_user"
+                android:tint="@color/nav_unselected" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/textUser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="User"
+            android:textSize="12sp"
+            android:textColor="@color/nav_unselected" />
+
+    </LinearLayout>
+
+</LinearLayout>

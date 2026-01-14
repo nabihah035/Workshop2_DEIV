@@ -21,7 +21,12 @@
         android:theme="@style/Theme.DEIV"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-        <!-- Splash Activity as Launcher -->
+        <activity
+            android:name=".cases.AddEvidenceActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cases.CaseDetailActivity"
+            android:exported="false" /> <!-- Splash Activity as Launcher -->
         <activity
             android:name=".login.SplashActivity"
             android:exported="true">

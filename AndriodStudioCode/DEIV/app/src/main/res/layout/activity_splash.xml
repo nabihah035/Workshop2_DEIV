@@ -57,7 +57,7 @@
         android:layout_marginBottom="120dp"
         android:indeterminate="true"
         android:progressBackgroundTint="@color/light_blue"
-        android:progressTint="@android:color/white"
+        android:progressTint="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"

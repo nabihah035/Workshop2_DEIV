@@ -3,18 +3,26 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="20dp"
-    android:background="#FFFFFF">
+    android:padding="20dp">
 
     <!--Title -->
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Case"
-        android:textSize="25sp"
+        android:text="Add New Case"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="#000000"
-        android:layout_marginBottom="4dp" />
+        android:textColor="#0D47A1"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"/>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginBottom="20dp" />
+
 
     <!-- Case Name -->
     <TextView
@@ -29,12 +37,14 @@
     <EditText
         android:id="@+id/etCaseName"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:hint="Enter case name"
         android:textColor="#000000"
         android:maxLines="1"
+        android:padding="10dp"
         android:inputType="textCapWords"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_input_field"/>
 
     <!-- Description -->
     <TextView
@@ -54,7 +64,9 @@
         android:textColor="#000000"
         android:minLines="3"
         android:maxLines="5"
+        android:padding="10dp"
         android:inputType="textMultiLine"
-        android:gravity="top" />
+        android:gravity="top"
+        android:background="@drawable/bg_input_field"/>
 
 </LinearLayout>

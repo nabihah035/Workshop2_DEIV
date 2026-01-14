@@ -11,283 +11,425 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Profile Header -->
-        <LinearLayout
+        <!-- User Info Card -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@android:color/white"
-            android:padding="20dp"
-            android:elevation="4dp"
-            android:layout_marginBottom="16dp"
-            android:gravity="center_horizontal">
+            android:layout_marginBottom="2dp"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true"
+            app:cardBackgroundColor="#0D47A1">
 
-            <ImageView
-                android:id="@+id/ivUserIcon"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:src="@drawable/ic_user"
-                android:background="@drawable/bg_user"
-                android:elevation="10dp"
-                android:padding="12dp"
-                android:contentDescription="@string/user_icon"
-                android:layout_marginBottom="16dp"
-                app:tint="@android:color/white" />
-
-
-            <TextView
-                android:id="@+id/tvFullName"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Sarah Johnson"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginBottom="8dp"/>
+                android:orientation="horizontal"
+                android:padding="20dp">
 
-            <TextView
-                android:id="@+id/tvUsername"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="n@johnson"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:layout_marginBottom="12dp"/>
+                <!-- User Icon -->
+                <LinearLayout
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@drawable/bg_rounded_light_blue"
+                    android:gravity="center"
+                    android:layout_marginEnd="16dp">
 
-            <TextView
-                android:id="@+id/tvUserStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Active"
-                android:textSize="14sp"
-                android:textColor="#4CAF50"
-                android:background="#E8F5E9"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="4dp"
-                android:radius="12dp"
-                android:gravity="center"/>
-        </LinearLayout>
+                    <ImageView
+                        android:id="@+id/ivUserIcon"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_user"
+                        android:contentDescription="@string/user_icon"
+                        app:tint="#0D47A1" />
+                </LinearLayout>
+
+                <!-- User Details -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingTop="15dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tvFullName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Detective John Smith"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/white"
+                            android:layout_marginEnd="8dp"/>
+
+                        <!-- Status Badge -->
+                        <LinearLayout
+                            android:id="@+id/statusBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_status_badge"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="2dp"
+                            android:gravity="center"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/tvUserStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Active"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:textColor="@android:color/white"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvUserRole"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Law Enforcement Officer"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/white"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <!-- Account Information Card -->
-        <LinearLayout
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@android:color/white"
-            android:padding="20dp"
-            android:elevation="4dp"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="2dp"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true"
+            app:cardBackgroundColor="@android:color/white">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Account Information"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Full Name -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
+                android:orientation="vertical"
+                android:padding="20dp">
 
+                <!-- Title -->
                 <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Full Name"
-                    android:textSize="16sp"
-                    android:textColor="#666666"/>
-
-                <TextView
-                    android:id="@+id/tvFullNameValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sarah Johnson"
-                    android:textSize="16sp"
+                    android:text="Account Information"
+                    android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@android:color/black"/>
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Full Name Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Icon -->
+                    <LinearLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_rounded_light_blue"
+                        android:gravity="center"
+                        android:layout_marginEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_user"
+                            android:contentDescription="@string/user_icon"
+                            app:tint="#0D47A1" />
+                    </LinearLayout>
+
+                    <!-- Details -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Full Name"
+                            android:textSize="14sp"
+                            android:textColor="#666666"/>
+
+                        <TextView
+                            android:id="@+id/tvFullNameValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Detective John Smith"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Username Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Icon -->
+                    <LinearLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_rounded_light_blue"
+                        android:gravity="center"
+                        android:layout_marginEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_mail"
+                            android:contentDescription="mail icon"
+                            app:tint="#0D47A1" />
+                    </LinearLayout>
+
+                    <!-- Details -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Username"
+                            android:textSize="14sp"
+                            android:textColor="#666666"/>
+
+                        <TextView
+                            android:id="@+id/tvUsernameValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="johnsmith"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Organization Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Icon -->
+                    <LinearLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_rounded_light_blue"
+                        android:gravity="center"
+                        android:layout_marginEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_location"
+                            android:contentDescription="location icon"
+                            app:tint="#0D47A1" />
+                    </LinearLayout>
+
+                    <!-- Details -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Organization"
+                            android:textSize="14sp"
+                            android:textColor="#666666"/>
+
+                        <TextView
+                            android:id="@+id/tvOrganization"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="City Police Department"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Created At Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <!-- Icon -->
+                    <LinearLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_rounded_light_blue"
+                        android:gravity="center"
+                        android:layout_marginEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_calendar"
+                            android:contentDescription="calendar icon"
+                            app:tint="#0D47A1" />
+                    </LinearLayout>
+
+                    <!-- Details -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Created At"
+                            android:textSize="14sp"
+                            android:textColor="#666666"/>
+
+                        <TextView
+                            android:id="@+id/tvCreatedAt"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="January 14, 2026"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"/>
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
-
-            <!-- Username -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Username"
-                    android:textSize="16sp"
-                    android:textColor="#666666"/>
-
-                <TextView
-                    android:id="@+id/tvUsernameValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="sjohnson"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/black"/>
-            </LinearLayout>
-
-            <!-- Password (Hidden) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Password"
-                    android:textSize="16sp"
-                    android:textColor="#666666"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="**********"
-                    android:textSize="16sp"
-                    android:textColor="@android:color/black"/>
-            </LinearLayout>
-
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Organization -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Organization"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginBottom="12dp"/>
-
-            <TextView
-                android:id="@+id/tvOrganization"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Federal Bureau of Investigation"
-                android:textSize="16sp"
-                android:textColor="#666666"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Created At -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Created At"
-                    android:textSize="16sp"
-                    android:textColor="#666666"/>
-
-                <TextView
-                    android:id="@+id/tvCreatedAt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="June 15, 2023"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/black"/>
-            </LinearLayout>
-        </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <!-- Profile Actions Card -->
-        <LinearLayout
+        <!-- Profile Actions Card -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@android:color/white"
-            android:padding="20dp"
-            android:elevation="4dp"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="2dp"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true"
+            app:cardBackgroundColor="@android:color/white">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Profile Actions"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Edit Profile Button -->
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnEditProfile"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Edit Profile"
-                android:textAllCaps="false"
-                android:background="@drawable/blue_gradient"
-                android:elevation="4dp"
-                android:paddingStart="50dp"
-                android:padding="12dp"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="12dp"
-                android:drawableStart="@drawable/ic_edit"
-                android:drawablePadding="1dp"/>
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <!-- Change Password Button -->
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnChangePassword"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Change Password"
-                android:textAllCaps="false"
-                android:background="@drawable/btn_chgpss"
-                android:elevation="4dp"
-                android:padding="12dp"
-                android:paddingStart="50dp"
-                android:textColor="@color/black"
-                android:layout_marginBottom="12dp"
-                android:drawableStart="@drawable/ic_lock"
-                android:drawableTint="@color/black"
-                android:drawablePadding="1dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Profile Actions"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="16dp"/>
 
-            <!-- Logout Button -->
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnLogout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Logout"
-                android:textAllCaps="false"
-                android:background="@drawable/bg_logout_field"
-                android:elevation="4dp"
-                android:padding="12dp"
-                android:paddingStart="50dp"
-                android:textColor="#C11E1E"
-                android:layout_marginBottom="12dp"
-                android:drawableStart="@drawable/ic_logout"
-                android:drawableTint="#C11E1E"
-                android:drawablePadding="1dp"/>
-        </LinearLayout>
+                <!-- Edit Profile Button -->
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnEditProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Edit Profile"
+                    android:textAllCaps="false"
+                    android:background="@drawable/blue_gradient"
+                    android:elevation="4dp"
+                    android:paddingStart="50dp"
+                    android:padding="12dp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginBottom="12dp"
+                    android:drawableStart="@drawable/ic_edit"
+                    android:drawablePadding="1dp"/>
+
+                <!-- Change Password Button -->
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnChangePassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Change Password"
+                    android:textAllCaps="false"
+                    android:background="@drawable/btn_chgpss"
+                    android:elevation="4dp"
+                    android:padding="12dp"
+                    android:paddingStart="50dp"
+                    android:textColor="@color/black"
+                    android:layout_marginBottom="12dp"
+                    android:drawableStart="@drawable/ic_lock"
+                    android:drawableTint="@color/black"
+                    android:drawablePadding="1dp"/>
+
+                <!-- Logout Button -->
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnLogout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Logout"
+                    android:textAllCaps="false"
+                    android:background="@drawable/bg_logout_field"
+                    android:elevation="4dp"
+                    android:padding="12dp"
+                    android:paddingStart="50dp"
+                    android:textColor="#C11E1E"
+                    android:layout_marginBottom="12dp"
+                    android:drawableStart="@drawable/ic_logout"
+                    android:drawableTint="#C11E1E"
+                    android:drawablePadding="1dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <!-- Progress Bar -->
         <ProgressBar
