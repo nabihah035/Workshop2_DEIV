@@ -5,5 +5,6 @@ data class NotificationModel(
     val message: String,
     val status: String,
     val date: String,
-    val Evidence_id: Int?
+    val Evidence_id: Int?,
+    val Case_id: Int?
 )

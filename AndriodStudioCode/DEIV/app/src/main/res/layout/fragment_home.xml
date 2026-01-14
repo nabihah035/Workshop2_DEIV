@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- NEW HEADER SECTION -->
+        <!-- HEADER SECTION -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -38,7 +38,6 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <!-- CardView for white background with shadow/elevation -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="40dp"
                         android:layout_height="44dp"
@@ -100,30 +99,36 @@
                     android:src="@drawable/ic_user"
                     app:tint="@color/white" />
 
-                <ImageButton
-                    android:id="@+id/btn_notification_header"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/icon_background"
-                    android:backgroundTint="#B80D47A1"
-                    android:contentDescription="Notifications"
-                    android:src="@drawable/ic_notifications"
-                    app:tint="@color/white" />
+                <!-- FIXED: FrameLayout to overlay the badge on the icon -->
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/tv_notification_badge"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="top|end"
-                    android:layout_marginTop="2dp"
-                    android:layout_marginEnd="2dp"
-                    android:background="@drawable/badge_background"
-                    android:gravity="center"
-                    android:text="0"
-                    android:textColor="@android:color/white"
-                    android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
+                    <ImageButton
+                        android:id="@+id/btn_notification_header"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:background="@drawable/icon_background"
+                        android:backgroundTint="#B80D47A1"
+                        android:contentDescription="Notifications"
+                        android:src="@drawable/ic_notifications"
+                        app:tint="@color/white" />
+
+                    <TextView
+                        android:id="@+id/tv_notification_badge"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginEnd="4dp"
+                        android:background="@drawable/badge_background"
+                        android:gravity="center"
+                        android:text="0"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </FrameLayout>
 
             </LinearLayout>
         </LinearLayout>
@@ -171,7 +176,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Dashboard Title -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -181,7 +185,7 @@
                 android:textColor="@color/black"
                 android:layout_marginBottom="2dp" />
 
-            <!-- Statistic Cards Container -->
+            <!-- Statistic Cards -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -189,18 +193,14 @@
                 android:gravity="center"
                 android:layout_marginBottom="0dp">
 
-                <!-- Total Cases Card -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="0dp"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="8dp"
-                    app:cardMaxElevation="12dp"
                     app:cardUseCompatPadding="true"
-                    android:layout_marginBottom="4dp"
-                    android:foreground="?android:attr/selectableItemBackground">
+                    android:layout_marginBottom="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -210,34 +210,27 @@
                         android:gravity="center_horizontal"
                         android:background="@drawable/card_bg">
 
-                        <!-- Icon Container -->
                         <LinearLayout
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:background="@drawable/icon_bg_blue"
                             android:gravity="center"
                             android:layout_marginBottom="12dp">
-
                             <ImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:src="@drawable/ic_folderopen"
-                                android:contentDescription="Total Cases Icon"
                                 app:tint="@android:color/white" />
                         </LinearLayout>
 
-                        <!-- Title -->
                         <TextView
-                            android:text="Total Cases"
+                            android:text="TOTAL CASES"
                             android:textSize="11sp"
                             android:textColor="#000000"
-                            android:textAllCaps="true"
-                            android:letterSpacing="0.05"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="4dp" />
 
-                        <!-- Count -->
                         <TextView
                             android:id="@+id/tvTotalCases"
                             android:text="0"
@@ -246,23 +239,17 @@
                             android:textColor="@color/black"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
-
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- Evidence Uploads Card -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginStart="0dp"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="8dp"
-                    app:cardMaxElevation="12dp"
-                    app:cardPreventCornerOverlap="true"
                     app:cardUseCompatPadding="true"
-                    android:layout_marginBottom="4dp"
-                    android:foreground="?android:attr/selectableItemBackground">
+                    android:layout_marginBottom="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -272,34 +259,27 @@
                         android:gravity="center_horizontal"
                         android:background="@drawable/card_bg">
 
-                        <!-- Icon Container -->
                         <LinearLayout
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:background="@drawable/icon_bg_green"
                             android:gravity="center"
                             android:layout_marginBottom="12dp">
-
                             <ImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:src="@drawable/ic_file"
-                                android:contentDescription="Evidence Uploads Icon"
                                 app:tint="@android:color/white" />
                         </LinearLayout>
 
-                        <!-- Title -->
                         <TextView
-                            android:text="Evidence Upload"
+                            android:text="EVIDENCE UPLOAD"
                             android:textSize="11sp"
                             android:textColor="#000000"
-                            android:textAllCaps="true"
-                            android:letterSpacing="0.05"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="4dp" />
 
-                        <!-- Count -->
                         <TextView
                             android:id="@+id/tvEvidenceUploads"
                             android:text="0"
@@ -308,7 +288,6 @@
                             android:textColor="@color/black"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
-
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
             </LinearLayout>
@@ -339,14 +318,11 @@
                     android:textColor="#2196F3"
                     android:gravity="end|center_vertical"
                     android:padding="8dp"
-                    android:clickable="true"
-                    android:focusable="true"
                     android:drawableEnd="@drawable/ic_arrowoutward"
                     android:drawableTint="#2196F3"
                     android:drawablePadding="2dp"/>
             </LinearLayout>
 
-            <!-- Recent Cases List -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerRecentCases"
                 android:layout_width="match_parent"
