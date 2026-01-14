@@ -1,29 +1,32 @@
 <?php
-include 'db_config.php'; // Your database connection file
+include "db_connect.php";
+header("Content-Type: application/json");
 
-$username = $_POST['username'];
+$username = $_POST['username'] ?? '';
+$email = $_POST['email'] ?? '';
+$new_pass = $_POST['new_password'] ?? '';
 
-// 1. Check if user exists
-$stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
-$stmt->bind_param("s", $username);
+if (!$username || !$email || !$new_pass) {
+    echo json_encode(["status" => "error", "message" => "Missing required data"]);
+    exit;
+}
+
+// Verify user (Check if table is 'user' or 'users')
+$stmt = $conn->prepare("SELECT * FROM `user` WHERE username = ? AND email = ?");
+$stmt->bind_param("ss", $username, $email);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
-    // 2. Logic for password reset (e.g., reset to a default or send email)
-    // For a simple workshop, we can reset it to "123456"
-    $newPassword = password_hash("123456", PASSWORD_DEFAULT);
-    $update = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
-    $update->bind_param("ss", $newPassword, $username);
+    $hashed = password_hash($new_pass, PASSWORD_DEFAULT);
+    $update = $conn->prepare("UPDATE `user` SET password = ? WHERE username = ?");
+    $update->bind_param("ss", $hashed, $username);
     
     if ($update->execute()) {
-        echo json_encode([
-            "status" => "success",
-            "message" => "Your password has been reset to: 123456"
-        ]);
+        echo json_encode(["status" => "success", "message" => "Password updated!"]);
     } else {
-        echo json_encode(["status" => "error", "message" => "Failed to update password"]);
+        echo json_encode(["status" => "error", "message" => "Update failed"]);
     }
 } else {
-    echo json_encode(["status" => "error", "message" => "Username not found"]);
+    echo json_encode(["status" => "error", "message" => "Invalid Username or Email"]);
 }
