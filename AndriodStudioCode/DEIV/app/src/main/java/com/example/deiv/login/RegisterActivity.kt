@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -29,6 +31,7 @@ class RegisterActivity : AppCompatActivity() {
     private var etUsername: EditText? = null
     private var etEmail: EditText? = null
     private var etPassword: EditText? = null
+    private var etConfirmPassword: EditText? = null
     private var etOrganization: EditText? = null
     private var spinnerRole: Spinner? = null
     private var btnRegister: Button? = null
@@ -56,6 +59,7 @@ class RegisterActivity : AppCompatActivity() {
         etUsername = findViewById(R.id.etRegUsername)
         etEmail = findViewById(R.id.etEmail)
         etPassword = findViewById(R.id.etRegPassword)
+        etConfirmPassword = findViewById(R.id.etConfirmPassword)
         etOrganization = findViewById(R.id.etOrganization)
         spinnerRole = findViewById(R.id.spinnerRole)
         btnRegister = findViewById(R.id.btnRegister)
@@ -75,16 +79,19 @@ class RegisterActivity : AppCompatActivity() {
             val username = etUsername?.text?.toString()?.trim() ?: ""
             val email = etEmail?.text?.toString()?.trim() ?: ""
             val password = etPassword?.text?.toString()?.trim() ?: ""
+            val confirmPassword = etConfirmPassword?.text?.toString()?.trim() ?: ""
             val organization = etOrganization?.text?.toString()?.trim() ?: ""
             val selectedRole = spinnerRole?.selectedItem?.toString() ?: ""
 
             if (firstName.isEmpty() || lastName.isEmpty() ||
                 username.isEmpty() || email.isEmpty() ||
-                password.isEmpty() || organization.isEmpty() ||
-                selectedRole.isEmpty()) {
+                password.isEmpty() || confirmPassword.isEmpty() ||
+                organization.isEmpty() || selectedRole.isEmpty()) {
                 Toast.makeText(this@RegisterActivity, "Please fill all fields", Toast.LENGTH_SHORT).show()
             } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(this@RegisterActivity, "Please enter a valid email", Toast.LENGTH_SHORT).show()
+            } else if (password != confirmPassword) {
+                Toast.makeText(this@RegisterActivity, "Passwords do not match", Toast.LENGTH_SHORT).show()
             } else {
                 registerToMySQL(firstName, lastName, username, email, password, organization, selectedRole)
             }
@@ -92,18 +99,29 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun setupRoleSpinner() {
-        // Create an ArrayAdapter using the string array and a default spinner layout
         val adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_item,
             roleOptions
         )
-
-        // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
-        // Apply the adapter to the spinner
         spinnerRole?.adapter = adapter
+
+        // Add listener to change organization hint based on role
+        spinnerRole?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedRole = roleOptions[position]
+                if (selectedRole == "Institution") {
+                    etOrganization?.hint = "Institution Name (e.g., UTeM)"
+                } else {
+                    etOrganization?.hint = "Organization (e.g., Bank Islam)"
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Do nothing
+            }
+        }
     }
 
     private fun registerToMySQL(
@@ -120,7 +138,6 @@ class RegisterActivity : AppCompatActivity() {
 
         executor.execute {
             try {
-                // 1. Prepare POST data with role and organization
                 val postData = StringBuilder()
                     .append("username=").append(URLEncoder.encode(username, "UTF-8"))
                     .append("&password=").append(URLEncoder.encode(password, "UTF-8"))
@@ -129,10 +146,9 @@ class RegisterActivity : AppCompatActivity() {
                     .append("&last_name=").append(URLEncoder.encode(lname, "UTF-8"))
                     .append("&organization=").append(URLEncoder.encode(organization, "UTF-8"))
                     .append("&role=").append(URLEncoder.encode(role, "UTF-8"))
-                    .append("&status=Inactive") // Default status for new users
+                    .append("&status=Pending")
                     .toString()
 
-                // 2. Connect using ApiService.REGISTER
                 val url = URL(ApiService.REGISTER)
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
@@ -140,26 +156,19 @@ class RegisterActivity : AppCompatActivity() {
                 conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
                 conn.setRequestProperty("Charset", "UTF-8")
 
-                // 3. Write data
                 conn.outputStream.use { os ->
                     os.write(postData.toByteArray())
                     os.flush()
                 }
 
-                // 4. Check response code
                 val responseCode = conn.responseCode
                 if (responseCode != HttpURLConnection.HTTP_OK) {
                     handler.post {
-                        Toast.makeText(
-                            this@RegisterActivity,
-                            "Server Error: HTTP $responseCode",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this@RegisterActivity, "Server Error: HTTP $responseCode", Toast.LENGTH_SHORT).show()
                     }
                     return@execute
                 }
 
-                // 5. Read response
                 val reader = BufferedReader(InputStreamReader(conn.inputStream))
                 val response = StringBuilder()
                 var line: String?
@@ -168,17 +177,12 @@ class RegisterActivity : AppCompatActivity() {
                 }
                 reader.close()
 
-                // 6. Handle response on main thread
                 handler.post {
                     handleRegisterResponse(response.toString(), username, email, role, organization)
                 }
             } catch (e: Exception) {
                 handler.post {
-                    Toast.makeText(
-                        this@RegisterActivity,
-                        "Network Error: ${e.localizedMessage}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@RegisterActivity, "Network Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -192,13 +196,8 @@ class RegisterActivity : AppCompatActivity() {
         organization: String
     ) {
         try {
-            // Check for PHP/HTML errors
             if (response.contains("<br") || response.contains("<!DOCTYPE") || response.contains("<html")) {
-                Toast.makeText(
-                    this@RegisterActivity,
-                    "Server Error: Check your PHP code",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this@RegisterActivity, "Server Error: Check your PHP code", Toast.LENGTH_LONG).show()
                 return
             }
 
@@ -210,57 +209,35 @@ class RegisterActivity : AppCompatActivity() {
             when (status.lowercase()) {
                 "success" -> {
                     if (userId > 0) {
-                        // MySQL registration successful, now save to Firebase
                         saveTokenToFirebase(username, email, role, organization, userId)
                     } else {
                         Toast.makeText(
                             this@RegisterActivity,
-                            "Registration successful but user ID not returned",
-                            Toast.LENGTH_SHORT
+                            "Registration Successfully, Please wait for admin approval.",
+                            Toast.LENGTH_LONG
                         ).show()
                         navigateToLogin()
                     }
                 }
                 "error" -> {
-                    // Handle specific error messages
                     when {
                         message.contains("username", ignoreCase = true) -> {
-                            Toast.makeText(
-                                this@RegisterActivity,
-                                "Username already exists",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(this@RegisterActivity, "Username already exists", Toast.LENGTH_SHORT).show()
                         }
                         message.contains("email", ignoreCase = true) -> {
-                            Toast.makeText(
-                                this@RegisterActivity,
-                                "Email already exists",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(this@RegisterActivity, "Email already exists", Toast.LENGTH_SHORT).show()
                         }
                         else -> {
-                            Toast.makeText(
-                                this@RegisterActivity,
-                                message.ifEmpty { "Registration failed" },
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(this@RegisterActivity, message.ifEmpty { "Registration failed" }, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
                 else -> {
-                    Toast.makeText(
-                        this@RegisterActivity,
-                        "Unexpected response: $status",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@RegisterActivity, "Unexpected response: $status", Toast.LENGTH_SHORT).show()
                 }
             }
         } catch (e: Exception) {
-            Toast.makeText(
-                this@RegisterActivity,
-                "Error parsing response: ${e.localizedMessage}",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this@RegisterActivity, "Error parsing response: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -273,11 +250,7 @@ class RegisterActivity : AppCompatActivity() {
     ) {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
-                Toast.makeText(
-                    this@RegisterActivity,
-                    "Failed to get FCM token: ${task.exception?.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@RegisterActivity, "Failed to get FCM token: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 return@addOnCompleteListener
             }
 
@@ -289,29 +262,20 @@ class RegisterActivity : AppCompatActivity() {
                 "email" to email,
                 "role" to role,
                 "organization" to organization,
-                "status" to "Inactive",
+                "status" to "Pending",
                 "fcmToken" to token,
                 "registrationDate" to System.currentTimeMillis()
             )
 
             fStore?.collection("users")
-                ?.document(email) // Using email as document ID, but you could use userId
+                ?.document(email)
                 ?.set(userData)
                 ?.addOnSuccessListener {
-                    Toast.makeText(
-                        this@RegisterActivity,
-                        "Registration Complete! Please wait for Admin Approval.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(this@RegisterActivity, "Registration Complete! Please wait for Admin Approval.", Toast.LENGTH_LONG).show()
                     navigateToLogin()
                 }
                 ?.addOnFailureListener { e ->
-                    Toast.makeText(
-                        this@RegisterActivity,
-                        "Firestore Error: ${e.localizedMessage}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    // Even if Firebase fails, user is registered in MySQL, so navigate to login
+                    Toast.makeText(this@RegisterActivity, "Firestore Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                     navigateToLogin()
                 }
         }
@@ -329,8 +293,8 @@ class RegisterActivity : AppCompatActivity() {
         etUsername?.setText("")
         etEmail?.setText("")
         etPassword?.setText("")
+        etConfirmPassword?.setText("")
         etOrganization?.setText("")
-        // Reset spinner to first position
         spinnerRole?.setSelection(0)
     }
 }
