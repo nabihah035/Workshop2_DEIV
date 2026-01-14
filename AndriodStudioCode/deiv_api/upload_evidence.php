@@ -1,171 +1,191 @@
 <?php
-session_start();
-include "db_connect.php";
+// ==========================================
+// BULLETPROOF ERROR HANDLING
+// ==========================================
+error_reporting(E_ALL);
+ini_set('display_errors', 0); 
 header("Content-Type: application/json");
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["status" => "error", "message" => "Invalid request method"]);
-    exit;
-}
-
-// For Android app, we should primarily get user_id from POST
-// Session is more for web-based login
-$user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
-
-// For web compatibility, you can also check session
-if ($user_id <= 0 && isset($_SESSION['user_id'])) {
-    $user_id = intval($_SESSION['user_id']);
-}
-
-// Final validation
-if ($user_id <= 0) {
-    echo json_encode([
-        "status" => "error", 
-        "message" => "User not authenticated. Please login again."
-    ]);
-    exit;
-}
-
-// Validate other required fields
-$file_name = $_POST['file_name'] ?? '';
-$upload_date = $_POST['upload_date'] ?? date('Y-m-d'); // Changed to date format
-$status = $_POST['status'] ?? 'Pending';
-$hash_value = $_POST['hash_value'] ?? '';
-$case_id = intval($_POST['case_id'] ?? 0);
-
-// Additional validation
-if (empty($file_name) || $case_id <= 0) {
-    echo json_encode(["status" => "error", "message" => "Missing required fields: file_name or case_id"]);
-    exit;
-}
-
-// Validate status is one of the allowed values
-$allowed_statuses = ['Verified', 'Tampered', 'Pending'];
-if (!in_array($status, $allowed_statuses)) {
-    $status = 'Pending'; // Default to Pending
-}
-
-// Validate hash_value format and length (max 200 chars in DB)
-if (!empty($hash_value)) {
-    // Ensure it's a valid hex string
-    if (!preg_match('/^[a-f0-9]+$/i', $hash_value)) {
-        echo json_encode(["status" => "error", "message" => "Invalid hash format"]);
+// Catch Fatal Errors
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Server Crash: " . $error['message']]);
         exit;
     }
-    // Truncate if too long for database
-    if (strlen($hash_value) > 200) {
-        $hash_value = substr($hash_value, 0, 200);
+});
+
+// ==========================================
+// CONFIGURATION
+// ==========================================
+session_start();
+include "db_connect.php"; 
+
+$upload_dir = 'uploads/evidence/';
+if (!file_exists($upload_dir)) mkdir($upload_dir, 0777, true);
+
+// URL of your Python AI Server
+$PYTHON_AI_URL = "http://127.0.0.1:5000/predict";
+
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
+
+function run_ai_detection($filePath, $originalName, $aiUrl) {
+    $cFile = new CURLFile($filePath, mime_content_type($filePath), $originalName);
+    $data = ['file' => $cFile];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $aiUrl);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30); // 30 second timeout for AI
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
+    if (curl_errno($ch)) { curl_close($ch); return 'error'; }
+    curl_close($ch);
+
+    if ($httpCode !== 200) return 'error';
+
+    $json = json_decode($response, true);
+    
+    if (isset($json['prediction'])) {
+        if (strpos($json['prediction'], 'Forged') !== false || strpos($json['prediction'], 'Deepfake') !== false) {
+            return 'forged';
+        }
+        return 'authentic';
     }
+    
+    return 'error';
 }
 
-// Get client IP address - handle IPv6 addresses properly
-$ip_address = $_SERVER['REMOTE_ADDR'];
-// Truncate IP address if too long for your database column
-if (strlen($ip_address) > 45) {
-    $ip_address = substr($ip_address, 0, 45);
+function get_file_metadata($filePath, $mimeType) {
+    $metadata = [];
+    $fileSize = filesize($filePath);
+    $metadata['File Size'] = round($fileSize / (1024 * 1024), 2) . ' MB';
+    if (strpos($mimeType, 'image/') === 0 && $imageSize = getimagesize($filePath)) {
+        $metadata['Image Dimensions'] = $imageSize[0] . 'x' . $imageSize[1];
+    }
+    return $metadata;
 }
+
+// ==========================================
+// MAIN LOGIC
+// ==========================================
 
 try {
-    // Start transaction
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception("Invalid request method");
+
+    $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : (isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0);
+    if ($user_id <= 0) throw new Exception("User not authenticated.");
+
+    $case_id = intval($_POST['case_id'] ?? 0);
+    if ($case_id <= 0) throw new Exception("Missing Case ID");
+
+    if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception("No file uploaded");
+    }
+
+    $file = $_FILES['file'];
+    $tmp_path = $file['tmp_name'];
+    $final_file_name = !empty($_POST['file_name']) ? $_POST['file_name'] : basename($file['name']);
+    $file_mime_type = mime_content_type($tmp_path);
+
+    // --- AI CHECK ---
+    $ai_status = run_ai_detection($tmp_path, $file['name'], $PYTHON_AI_URL);
+
+    // Initialize default status
+    $db_status = 'Verified';
+    $json_response_status = 'success';
+    $json_message = "Upload Successful. AI verified this file is Authentic.";
+
+    // --- LOGIC CHANGE: HANDLE FORGERY WITHOUT EXITING ---
+    if ($ai_status === 'forged') {
+        $db_status = 'Tampered';     // Set DB status to Tampered
+        $json_response_status = 'tampered'; // Tell App to show Red Warning
+        $json_message = 'SECURITY ALERT: The AI detected this file is FORGED. Saved as "Tampered".';
+        // We do NOT exit here anymore. We continue to save.
+    } 
+    
+    // --- DATABASE TRANSACTION ---
     $conn->begin_transaction();
+
+    // 1. Get User
+    $stmt = $conn->prepare("SELECT username FROM user WHERE User_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    if ($stmt->get_result()->num_rows == 0) throw new Exception("User not found");
+    $stmt->close();
+
+    // 2. Get Case
+    $stmt = $conn->prepare("SELECT case_name FROM case_table WHERE Case_id = ?");
+    $stmt->bind_param("i", $case_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res->num_rows == 0) throw new Exception("Case not found");
+    $case_name = $res->fetch_assoc()['case_name'];
+    $stmt->close();
+
+    // 3. Insert Evidence (Using dynamic $db_status)
+    $hash = hash_file('sha256', $tmp_path);
+    $date = date('Y-m-d H:i:s');
     
-    // First, verify the user exists and is active (optional security check)
-    $user_check = $conn->prepare("SELECT User_id, username FROM user WHERE User_id = ? AND status = 'Active'");
-    $user_check->bind_param("i", $user_id);
-    $user_check->execute();
-    $user_result = $user_check->get_result();
-    
-    if ($user_result->num_rows == 0) {
-        throw new Exception("User not found or inactive");
-    }
-    $user = $user_result->fetch_assoc();
-    $username = $user['username'];
-    $user_check->close();
-    
-    // Verify the case exists and get case name
-    $case_check = $conn->prepare("SELECT Case_id, case_name FROM case_table WHERE Case_id = ?");
-    $case_check->bind_param("i", $case_id);
-    $case_check->execute();
-    $case_result = $case_check->get_result();
-    
-    if ($case_result->num_rows == 0) {
-        throw new Exception("Case not found");
-    }
-    $case = $case_result->fetch_assoc();
-    $case_name = $case['case_name'];
-    $case_check->close();
-    
-    // Insert into evidence table - upload_date should be date format
     $stmt = $conn->prepare("INSERT INTO evidence (file_name, upload_date, status, hash_value, Case_id) VALUES (?, ?, ?, ?, ?)");
-    
-    // Convert upload_date to proper date format if needed
-    $upload_date_formatted = date('Y-m-d', strtotime($upload_date));
-    
-    $stmt->bind_param("ssssi", $file_name, $upload_date_formatted, $status, $hash_value, $case_id);
-    
-    if (!$stmt->execute()) {
-        throw new Exception("Failed to insert evidence: " . $conn->error);
-    }
-    
+    // Bind the $db_status (Verified OR Tampered)
+    $stmt->bind_param("ssssi", $final_file_name, $date, $db_status, $hash, $case_id);
+    if (!$stmt->execute()) throw new Exception("Evidence Insert Failed: " . $stmt->error);
     $evidence_id = $stmt->insert_id;
     $stmt->close();
-    
-    // Create audit trail - action must be one of: Upload, Verify, Delete, View
-    $action = "Upload";
-    $audit_stmt = $conn->prepare("INSERT INTO audit_trail (action, date_time, ip_address, User_id, Evidence_id, Case_id) VALUES (?, NOW(), ?, ?, ?, ?)");
-    $audit_stmt->bind_param("ssiii", $action, $ip_address, $user_id, $evidence_id, $case_id);
 
-    if (!$audit_stmt->execute()) {
-        error_log("Audit trail error: " . $conn->error);
-        // Continue even if audit fails
+    // 4. Metadata
+    $meta = get_file_metadata($tmp_path, $file_mime_type);
+    $stmt = $conn->prepare("INSERT INTO metadata (meta_key, meta_value, Evidence_id) VALUES (?, ?, ?)");
+    foreach ($meta as $k => $v) {
+        $stmt->bind_param("ssi", $k, $v, $evidence_id);
+        $stmt->execute();
     }
-    
-    $audit_stmt->close();
-    
-    // ============================================
-    // ENHANCED NOTIFICATION SYSTEM
-    // ============================================
-    
-    // 1. Create notification for the user who uploaded the evidence
-    $message_to_uploader = "You have successfully uploaded evidence: '$file_name' for case '$case_name'";
-    $notification_stmt = $conn->prepare("INSERT INTO notification (message, status, date, User_id, Evidence_id, Case_id) VALUES (?, 'Unread', CURDATE(), ?, ?, ?)");
-    $notification_stmt->bind_param("siii", $message_to_uploader, $user_id, $evidence_id, $case_id);
-    
-    if (!$notification_stmt->execute()) {
-        error_log("Notification creation error: " . $conn->error);
-        // Continue even if notification fails
+    $stmt->close();
+
+    // 5. Move File
+    if (!move_uploaded_file($tmp_path, $upload_dir . $evidence_id . '_' . $original_filename)) {
+        throw new Exception("File move failed");
     }
-    $notification_stmt->close();
+
+    // 6. Audit Trail
+    $action = "Upload";
+    $ip = substr($_SERVER['REMOTE_ADDR'], 0, 45);
+    $stmt = $conn->prepare("INSERT INTO audit_trail (action, date_time, ip_address, User_id, Evidence_id, Case_id) VALUES (?, NOW(), ?, ?, ?, ?)");
+    if ($stmt) {
+        $stmt->bind_param("ssiii", $action, $ip, $user_id, $evidence_id, $case_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    // 7. Notification
+    $msg = "Uploaded evidence: '$final_file_name' ($db_status)";
+    $stmt = $conn->prepare("INSERT INTO notification (message, status, date, User_id, Evidence_id) VALUES (?, 'Unread', CURDATE(), ?, ?)");
+    if ($stmt) {
+        $stmt->bind_param("sii", $msg, $user_id, $evidence_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
     $conn->commit();
     
-    // Return success response
+    // Return the response (success or tampered)
     echo json_encode([
-        "status" => "success",
-        "message" => "Evidence uploaded successfully",
+        "status" => $json_response_status, 
+        "message" => $json_message,
         "evidence_id" => $evidence_id,
-        "file_name" => $file_name,
-        "upload_date" => $upload_date_formatted,
-        "case_id" => $case_id,
-        "user_id" => $user_id,
-        "case_name" => $case_name,
-        "notifications_created" => true
+        "ai_result" => $db_status
     ]);
-    
-} catch (Exception $e) {
-    // Rollback transaction on error
-    if (isset($conn) && $conn) {
-        $conn->rollback();
-    }
-    
-    error_log("Evidence upload error: " . $e->getMessage());
-    
-    echo json_encode([
-        "status" => "error", 
-        "message" => "Upload failed: " . $e->getMessage()
-    ]);
-}
 
-if (isset($conn) && $conn) {
-    $conn->close();
+} catch (Exception $e) {
+    if (isset($conn)) $conn->rollback();
+    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
 }
 ?>
