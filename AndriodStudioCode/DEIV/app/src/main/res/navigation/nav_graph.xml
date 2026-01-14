@@ -9,54 +9,20 @@
     <fragment
         android:id="@+id/nav_home"
         android:name="com.example.deiv.home.HomeFragment"
-        android:label="Home" />
+        android:label="Home"/>
 
     <fragment
         android:id="@+id/nav_case"
         android:name="com.example.deiv.cases.CaseFragment"
-        android:label="Cases">
-        <action
-            android:id="@+id/action_caseFragment_to_caseDetailFragment"
-            app:destination="@id/caseDetailFragment" />
-    </fragment>
+        android:label="Cases"/>
 
     <fragment
         android:id="@+id/nav_ai"
         android:name="com.example.deiv.ai.AiFragment"
-        android:label="AI Detection" />
+        android:label="AI Detection"/>
 
     <fragment
         android:id="@+id/nav_user"
         android:name="com.example.deiv.user.UserFragment"
-        android:label="User" />
-
-    <!-- DETAIL SCREENS -->
-    <fragment
-        android:id="@+id/caseDetailFragment"
-        android:name="com.example.deiv.cases.CaseDetailFragment"
-        android:label="Case Detail">
-        <argument
-            android:name="case_id"
-            app:argType="integer"
-            android:defaultValue="-1" />
-        <action
-            android:id="@+id/action_caseDetailFragment_to_addEvidenceFragment"
-            app:destination="@id/addEvidenceFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/addEvidenceFragment"
-        android:name="com.example.deiv.cases.AddEvidenceFragment"
-        android:label="Add Evidence">
-        <argument
-            android:name="case_id"
-            app:argType="integer"
-            android:defaultValue="-1" />
-        <action
-            android:id="@+id/action_addEvidenceFragment_to_caseDetailFragment"
-            app:destination="@id/caseDetailFragment"
-            app:popUpTo="@id/caseDetailFragment"
-            app:popUpToInclusive="false" />
-    </fragment>
-
+        android:label="User"/>
 </navigation>

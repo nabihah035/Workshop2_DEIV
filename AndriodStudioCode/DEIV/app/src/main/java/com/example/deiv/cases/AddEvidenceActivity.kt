@@ -6,27 +6,26 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.view.LayoutInflater
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.example.deiv.R
 import com.example.deiv.api.ApiService
+import com.example.deiv.login.SessionManager
+import com.example.deiv.MainActivity
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
-import com.example.deiv.login.SessionManager
-import android.util.Log
-import com.example.deiv.MainActivity
 
-class AddEvidenceFragment : Fragment() {
+class AddEvidenceActivity : AppCompatActivity() {
 
     private lateinit var tvFileName: TextView
+    private lateinit var tvCaseName: TextView
+    private lateinit var tvCaseId: TextView
     private lateinit var btnPickFile: Button
     private lateinit var btnUpload: Button
     private lateinit var btnBack: ImageView
@@ -39,6 +38,7 @@ class AddEvidenceFragment : Fragment() {
     private var selectedFileUri: Uri? = null
     private var selectedFileName: String = ""
     private var caseId: Int = -1
+    private var caseName: String = ""
     private lateinit var sessionManager: SessionManager
 
     @SuppressLint("SetTextI18n")
@@ -54,43 +54,43 @@ class AddEvidenceFragment : Fragment() {
     }
 
     @SuppressLint("SetTextI18n")
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        val view = inflater.inflate(R.layout.fragment_add_evidence, container, false)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Change to activity layout
+        setContentView(R.layout.activity_add_evidence)
 
         // Initialize SessionManager
-        sessionManager = SessionManager(requireContext())
+        sessionManager = SessionManager(this)
 
         // Initialize views
-        tvTitle = view.findViewById(R.id.tvTitle)
-        tvSubtitle = view.findViewById(R.id.tvSubtitle)
-        tvFileName = view.findViewById(R.id.tvFileName)
-        btnPickFile = view.findViewById(R.id.btnPickFile)
-        btnUpload = view.findViewById(R.id.btnUpload)
-        btnBack = view.findViewById(R.id.btnBack)
-        imagePreview = view.findViewById(R.id.imagePreview)
-        btnOpenPdf = view.findViewById(R.id.btnOpenPdf)
-        progressBar = view.findViewById(R.id.progressBar)
+        tvTitle = findViewById(R.id.tvTitle)
+        tvSubtitle = findViewById(R.id.tvSubtitle)
+        tvCaseName = findViewById(R.id.tvCaseName)
+        tvCaseId = findViewById(R.id.tvCaseId)
+        tvFileName = findViewById(R.id.tvFileName)
+        btnPickFile = findViewById(R.id.btnPickFile)
+        btnUpload = findViewById(R.id.btnUpload)
+        btnBack = findViewById(R.id.btnBack)
+        imagePreview = findViewById(R.id.imagePreview)
+        btnOpenPdf = findViewById(R.id.btnOpenPdf)
+        progressBar = findViewById(R.id.progressBar)
 
-        // Get case ID from arguments
-        caseId = arguments?.getInt("case_id", -1) ?: -1
+        // Get case details from intent
+        caseId = intent.getIntExtra("case_id", -1)
+        caseName = intent.getStringExtra("case_name") ?: "Unknown Case"
 
-        if (caseId > 0) {
-            tvSubtitle.text = "Case #$caseId - Upload evidence files"
-        }
+        // Update UI with case details
+        tvCaseName.text = caseName
+        tvCaseId.text = "Case #$caseId"
+        tvSubtitle.text = "Upload digital evidence files"
 
         setupListeners()
         checkLoginStatus()
-
-        return view
     }
 
     private fun setupListeners() {
         btnBack.setOnClickListener {
-            findNavController().popBackStack()
+            finish()
         }
 
         btnPickFile.setOnClickListener {
@@ -101,8 +101,7 @@ class AddEvidenceFragment : Fragment() {
             if (selectedFileUri != null) {
                 uploadEvidence()
             } else {
-                Toast.makeText(requireContext(), "Please select a file first", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(this, "Please select a file first", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -118,7 +117,7 @@ class AddEvidenceFragment : Fragment() {
 
     private fun getFileName(uri: Uri): String {
         var name = "unknown"
-        val cursor: Cursor? = requireContext().contentResolver.query(uri, null, null, null, null)
+        val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
 
         cursor?.use {
             val index = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
@@ -130,7 +129,7 @@ class AddEvidenceFragment : Fragment() {
     }
 
     private fun previewSelectedFile(uri: Uri) {
-        val mimeType = requireContext().contentResolver.getType(uri)
+        val mimeType = contentResolver.getType(uri)
 
         when {
             mimeType?.startsWith("image") == true -> {
@@ -148,7 +147,7 @@ class AddEvidenceFragment : Fragment() {
                 imagePreview.visibility = View.GONE
                 btnOpenPdf.visibility = View.GONE
                 Toast.makeText(
-                    requireContext(),
+                    this,
                     "File type not supported for preview",
                     Toast.LENGTH_SHORT
                 ).show()
@@ -159,22 +158,22 @@ class AddEvidenceFragment : Fragment() {
     private fun checkLoginStatus() {
         if (!sessionManager.isLoggedIn()) {
             Toast.makeText(
-                requireContext(),
+                this,
                 "You need to login to upload evidence",
                 Toast.LENGTH_SHORT
             ).show()
 
             // Redirect to MainActivity which should handle login
-            val intent = Intent(requireContext(), MainActivity::class.java)
+            val intent = Intent(this, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
-            requireActivity().finish()
+            finish()
         }
     }
 
     private fun uploadEvidence() {
         if (caseId <= 0) {
-            Toast.makeText(requireContext(), "Invalid case ID", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Invalid case ID", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -183,7 +182,7 @@ class AddEvidenceFragment : Fragment() {
 
         if (userId <= 0) {
             Toast.makeText(
-                requireContext(),
+                this,
                 "User not authenticated. Please login again.",
                 Toast.LENGTH_SHORT
             ).show()
@@ -199,7 +198,7 @@ class AddEvidenceFragment : Fragment() {
         val uploadDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
         // Create request
-        val queue = Volley.newRequestQueue(requireContext())
+        val queue = Volley.newRequestQueue(this)
         val url = ApiService.EVIDENCE_UPLOAD
 
         val request = object : StringRequest(
@@ -213,34 +212,29 @@ class AddEvidenceFragment : Fragment() {
                     val json = JSONObject(response)
                     if (json.getString("status") == "success") {
                         Toast.makeText(
-                            requireContext(),
+                            this,
                             "Evidence uploaded successfully!",
                             Toast.LENGTH_SHORT
                         ).show()
 
-                        // Navigate back to case details
-                        val bundle = Bundle()
-                        bundle.putInt("case_id", caseId)
-                        findNavController().navigate(
-                            R.id.action_addEvidenceFragment_to_caseDetailFragment,
-                            bundle
-                        )
+                        // Return to case detail with result
+                        val resultIntent = Intent()
+                        setResult(RESULT_OK, resultIntent)
+                        finish()
                     } else {
                         Toast.makeText(
-                            requireContext(),
+                            this,
                             "Upload failed: ${json.getString("message")}",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
                 } catch (_: Exception) {
-                    Toast.makeText(requireContext(), "Error parsing response", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(this, "Error parsing response", Toast.LENGTH_SHORT).show()
                 }
             },
             { error ->
                 progressBar.visibility = View.GONE
                 btnUpload.isEnabled = true
-                // Add more detailed error information
                 val errorMsg = error.message ?: "Unknown error"
                 val networkResponse = error.networkResponse
                 val statusCode = networkResponse?.statusCode ?: 0
@@ -253,7 +247,7 @@ class AddEvidenceFragment : Fragment() {
                 Log.e("UploadEvidence", "Error: $errorMsg, Status: $statusCode, Response: $responseData")
 
                 Toast.makeText(
-                    requireContext(),
+                    this,
                     "Upload failed: $errorMsg (Status: $statusCode)",
                     Toast.LENGTH_LONG
                 ).show()
@@ -266,7 +260,6 @@ class AddEvidenceFragment : Fragment() {
                 params["status"] = "Pending"
                 params["hash_value"] = hashValue
                 params["case_id"] = caseId.toString()
-                // ADD user_id from session manager
                 params["user_id"] = userId.toString()
                 return params
             }
@@ -275,7 +268,6 @@ class AddEvidenceFragment : Fragment() {
                 return "application/x-www-form-urlencoded"
             }
 
-            // Optional: Add headers if needed
             override fun getHeaders(): Map<String, String> {
                 val headers = HashMap<String, String>()
                 headers["Content-Type"] = "application/x-www-form-urlencoded"

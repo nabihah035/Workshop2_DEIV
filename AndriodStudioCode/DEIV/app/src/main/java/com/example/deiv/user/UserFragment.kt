@@ -34,6 +34,8 @@ class UserFragment : Fragment() {
     private lateinit var btnLogout: Button
     private lateinit var sessionManager: SessionManager
     private lateinit var currentUser: UserProfile
+    private lateinit var tvUserRole: TextView
+    private lateinit var statusBadge: LinearLayout // Add this line
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,8 +45,6 @@ class UserFragment : Fragment() {
 
         // Initialize views
         tvFullName = view.findViewById(R.id.tvFullName)
-        tvUsername = view.findViewById(R.id.tvUsername)
-        tvUserStatus = view.findViewById(R.id.tvUserStatus)
         tvOrganization = view.findViewById(R.id.tvOrganization)
         tvCreatedAt = view.findViewById(R.id.tvCreatedAt)
         tvFullNameValue = view.findViewById(R.id.tvFullNameValue)
@@ -53,6 +53,9 @@ class UserFragment : Fragment() {
         btnEditProfile = view.findViewById(R.id.btnEditProfile)
         btnChangePassword = view.findViewById(R.id.btnChangePassword)
         btnLogout = view.findViewById(R.id.btnLogout)
+        tvUserRole = view.findViewById(R.id.tvUserRole)
+        tvUserStatus = view.findViewById(R.id.tvUserStatus) // Add this line
+        statusBadge = view.findViewById(R.id.statusBadge) // Add this line
 
         // Initialize SessionManager
         sessionManager = SessionManager(requireContext())
@@ -102,13 +105,15 @@ class UserFragment : Fragment() {
 
     private fun showLoginPrompt() {
         tvFullName.text = "Guest User"
-        tvUsername.text = "@guest"
         tvFullNameValue.text = "Guest User"
         tvUsernameValue.text = "guest"
         tvUserStatus.text = "Not Logged In"
         tvUserStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.red))
         tvOrganization.text = "Please login to view profile"
         tvCreatedAt.text = "-"
+
+        // Hide status badge for guest
+        statusBadge.visibility = View.GONE
 
         Toast.makeText(requireContext(), "Please login to access profile features", Toast.LENGTH_LONG).show()
     }
@@ -195,20 +200,29 @@ class UserFragment : Fragment() {
     @SuppressLint("SetTextI18n")
     private fun displayUserData(user: UserProfile) {
         tvFullName.text = user.full_name
-        tvUsername.text = "@${user.username}"
+        tvUserRole.text = user.role
         tvFullNameValue.text = user.full_name
         tvUsernameValue.text = user.username
+
+        // Show and configure the status badge
+        statusBadge.visibility = View.VISIBLE
         tvUserStatus.text = user.status
 
+        // Set badge color based on status
         if (user.status.equals("Active", ignoreCase = true)) {
-            tvUserStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.green))
+            // Set green background for active status
+            statusBadge.setBackgroundResource(R.drawable.bg_status_badge_active)
+            tvUserStatus.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white))
         } else {
-            tvUserStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.red))
+            // Set red background for inactive status
+            statusBadge.setBackgroundResource(R.drawable.bg_status_badge_inactive)
+            tvUserStatus.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white))
         }
 
         tvOrganization.text = user.organization
         tvCreatedAt.text = user.created_at
     }
+
 
     private fun showEditProfileDialog() {
         if (!this::currentUser.isInitialized) {

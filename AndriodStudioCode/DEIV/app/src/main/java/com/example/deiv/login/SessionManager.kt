@@ -72,16 +72,12 @@ class SessionManager(context: Context) {
         return "UserID: ${getUserId()}, Username: ${getUsername()}, Name: ${getName()}, Role: ${getRole()}"
     }
 
-    @SuppressLint("UseKtx")
     fun clearSessionData() {
-        Log.d("SessionManager", "Clearing session data")
         prefs.edit()
-            .remove(KEY_USER_ID)
-            .remove(KEY_NAME)
-            .remove(KEY_USERNAME)
-            .remove(KEY_ROLE)
+            .clear()   // clear everything cleanly
             .apply()
     }
+
 
     fun logout() {
         Log.d("SessionManager", "Logging out user")

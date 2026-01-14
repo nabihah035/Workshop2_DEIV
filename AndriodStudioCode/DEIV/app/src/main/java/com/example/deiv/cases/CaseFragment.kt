@@ -2,13 +2,15 @@ package com.example.deiv.cases
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.view.inputmethod.InputMethodManager
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,31 +21,33 @@ import com.android.volley.toolbox.Volley
 import com.example.deiv.R
 import com.example.deiv.api.ApiService
 import com.example.deiv.login.SessionManager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import org.json.JSONArray
 import org.json.JSONObject
-import androidx.navigation.fragment.findNavController
-import android.graphics.Color
 import android.util.Log
-import java.text.SimpleDateFormat
+import android.content.Intent
+import com.android.volley.DefaultRetryPolicy
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.util.*
-import android.widget.Toast
 
 class CaseFragment : Fragment() {
 
     private lateinit var recyclerCases: RecyclerView
-    private lateinit var fabAddCase: FloatingActionButton
+    private lateinit var fabAddCase: ImageView
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var progressBar: ProgressBar
     private lateinit var tvNoCases: TextView
+    private lateinit var tvTotalCases: TextView
+    private lateinit var etSearch: EditText
+    private lateinit var btnApplyFilter: Button
+
+    private var currentFilter = "All"
+    private var allCases = JSONArray()
+    private var isSearching = false
 
     private val caseAdapter = CaseAdapter { caseId ->
-        val bundle = Bundle()
-        bundle.putInt("case_id", caseId)
-
-        findNavController().navigate(
-            R.id.caseDetailFragment,
-            bundle
-        )
+        val intent = Intent(requireContext(), CaseDetailActivity::class.java)
+        intent.putExtra("case_id", caseId)
+        startActivity(intent)
     }
 
     override fun onCreateView(
@@ -57,49 +61,118 @@ class CaseFragment : Fragment() {
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
         progressBar = view.findViewById(R.id.progressBar)
         tvNoCases = view.findViewById(R.id.tvNoCases)
+        tvTotalCases = view.findViewById(R.id.tvTotalCases)
+        etSearch = view.findViewById(R.id.etSearch)
 
-        // Setup RecyclerView
+        val btnFilter = view.findViewById<ImageView>(R.id.btnFilter)
+        btnFilter.setOnClickListener { showFilterDialog() }
+
         recyclerCases.layoutManager = LinearLayoutManager(context)
         recyclerCases.adapter = caseAdapter
 
-        // Setup FAB click
-        fabAddCase.setOnClickListener {
-            showAddCaseDialog()
-        }
+        fabAddCase.setOnClickListener { showAddCaseDialog() }
 
-        // Setup swipe to refresh
-        swipeRefresh.setOnRefreshListener {
-            loadCases()
-        }
+        swipeRefresh.setOnRefreshListener { loadCases() }
 
-        // Load cases initially
+        setupSearch()
         loadCases()
 
         return view
     }
 
+    private fun setupSearch() {
+        etSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                filterCases(s.toString().trim())
+            }
+        })
+
+        etSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                filterCases(etSearch.text.toString().trim())
+                hideKeyboard()
+                true
+            } else false
+        }
+    }
+
+    private fun hideKeyboard() {
+        val imm = requireContext()
+            .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(etSearch.windowToken, 0)
+    }
+
+    private fun filterCases(searchQuery: String) {
+        if (searchQuery.isEmpty()) {
+            isSearching = false
+            caseAdapter.setData(allCases)
+            updateTotalCasesText(allCases.length())
+            updateNoCasesVisibility(allCases.length())
+            return
+        }
+
+        isSearching = true
+        val filteredCases = JSONArray()
+
+        for (i in 0 until allCases.length()) {
+            val case = allCases.getJSONObject(i)
+            val caseName = case.getString("case_name").lowercase(Locale.getDefault())
+            if (caseName.contains(searchQuery.lowercase(Locale.getDefault()))) {
+                filteredCases.put(case)
+            }
+        }
+
+        caseAdapter.setData(filteredCases)
+        updateTotalCasesText(filteredCases.length())
+        updateNoCasesVisibility(filteredCases.length())
+
+        if (filteredCases.length() == 0) {
+            tvNoCases.text = "No cases found for \"$searchQuery\""
+            tvNoCases.visibility = View.VISIBLE
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateNoCasesVisibility(caseCount: Int) {
+        if (caseCount == 0) {
+            if (!isSearching) {
+                tvNoCases.text = "No cases found. Tap + to add your first case."
+            }
+            tvNoCases.visibility = View.VISIBLE
+            recyclerCases.visibility = View.GONE
+        } else {
+            tvNoCases.visibility = View.GONE
+            recyclerCases.visibility = View.VISIBLE
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
     private fun loadCases() {
+        etSearch.text.clear()
+        isSearching = false
+
         progressBar.visibility = View.VISIBLE
         tvNoCases.visibility = View.GONE
+        tvTotalCases.visibility = View.GONE
 
         val session = SessionManager(requireContext())
         val userId = session.getUserId()
-
-        Log.d("CaseFragment", "Loading cases for UserID: $userId")
 
         if (userId <= 0) {
             progressBar.visibility = View.GONE
             swipeRefresh.isRefreshing = false
             Toast.makeText(requireContext(), "Please login to view cases", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), com.example.deiv.login.LoginActivity::class.java))
+            requireActivity().finish()
             return
         }
 
-        // Use centralized API URL
-        val url = "${ApiService.CASE_LIST}?user_id=$userId"
-        Log.d("CaseFragment", "API URL: $url")
-
+        val url = "${ApiService.CASE_LIST}?user_id=$userId&status=$currentFilter"
         val queue = Volley.newRequestQueue(requireContext())
-        val stringRequest = StringRequest(
+
+        val request = StringRequest(
             Request.Method.GET,
             url,
             { response ->
@@ -110,17 +183,29 @@ class CaseFragment : Fragment() {
                     val json = JSONObject(response)
 
                     if (json.getString("status") == "success") {
+                        val totalCases = json.optInt("total_cases", 0)
+
                         if (json.has("cases") && !json.isNull("cases")) {
                             val casesArray = json.getJSONArray("cases")
+                            allCases = casesArray
 
                             if (casesArray.length() > 0) {
-                                tvNoCases.visibility = View.GONE
-                                recyclerCases.visibility = View.VISIBLE
-                                caseAdapter.setData(casesArray)
+                                val searchQuery = etSearch.text.toString().trim()
+                                if (searchQuery.isNotEmpty()) {
+                                    filterCases(searchQuery)
+                                } else {
+                                    tvNoCases.visibility = View.GONE
+                                    recyclerCases.visibility = View.VISIBLE
+                                    tvTotalCases.visibility = View.VISIBLE
+                                    caseAdapter.setData(casesArray)
+                                    updateTotalCasesText(totalCases)
+                                }
                             } else {
-                                tvNoCases.visibility = View.VISIBLE
-                                tvNoCases.text = "No cases found"
-                                recyclerCases.visibility = View.GONE
+                                updateNoCasesVisibility(0)
+                                if (totalCases == 0) {
+                                    tvTotalCases.visibility = View.VISIBLE
+                                    updateTotalCasesText(0)
+                                }
                             }
                         } else {
                             tvNoCases.visibility = View.VISIBLE
@@ -128,14 +213,15 @@ class CaseFragment : Fragment() {
                             recyclerCases.visibility = View.GONE
                         }
                     } else {
+                        val errorMsg = json.optString("message", "Unknown error")
                         tvNoCases.visibility = View.VISIBLE
-                        tvNoCases.text = "Error loading cases"
+                        tvNoCases.text = "Error: $errorMsg"
                         recyclerCases.visibility = View.GONE
+                        Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
                     tvNoCases.visibility = View.VISIBLE
-                    tvNoCases.text = "Error: ${e.message}"
+                    tvNoCases.text = "Error parsing response"
                     recyclerCases.visibility = View.GONE
                 }
             },
@@ -143,13 +229,25 @@ class CaseFragment : Fragment() {
                 progressBar.visibility = View.GONE
                 swipeRefresh.isRefreshing = false
                 tvNoCases.visibility = View.VISIBLE
-                tvNoCases.text = "Network error"
+                tvNoCases.text = "Network error. Check connection."
                 recyclerCases.visibility = View.GONE
-                error.printStackTrace()
+                Toast.makeText(requireContext(), "Network error", Toast.LENGTH_SHORT).show()
             }
         )
 
-        queue.add(stringRequest)
+        request.retryPolicy = DefaultRetryPolicy(
+            10000,
+            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        )
+
+        queue.add(request)
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateTotalCasesText(totalCases: Int) {
+        tvTotalCases.text =
+            if (totalCases == 1) "1 total case" else "$totalCases total cases"
     }
 
     @SuppressLint("UseKtx")
@@ -160,40 +258,60 @@ class CaseFragment : Fragment() {
         val etCaseName = dialogView.findViewById<EditText>(R.id.etCaseName)
         val etDescription = dialogView.findViewById<EditText>(R.id.etDescription)
 
-        val alertDialog = AlertDialog.Builder(requireContext())
+        AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .setPositiveButton("Create") { dialog, _ ->
                 val caseName = etCaseName.text.toString().trim()
                 val description = etDescription.text.toString().trim()
-
                 if (caseName.isNotEmpty() && description.isNotEmpty()) {
                     createNewCase(caseName, description)
                 }
                 dialog.dismiss()
             }
-            .setNegativeButton("Cancel") { dialog, _ ->
-                dialog.dismiss()
-            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
             .create()
-
-        alertDialog.show()
-
-        // Set background color to white (#FFFFFF)
-        alertDialog.window?.setBackgroundDrawableResource(android.R.color.white)
-
-        // Set button colors to light dark purple
-        val darkPurple = Color.parseColor("#6A5ACD") // A light dark purple (SlateBlue)
-        setDialogButtonTextColor(alertDialog, darkPurple)
+            .apply {
+                window?.setBackgroundDrawableResource(R.drawable.bg_dialog_rounded)
+                show()
+            }
     }
 
-    private fun setDialogButtonTextColor(dialog: AlertDialog, color: Int) {
-        // Get the buttons
-        val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-        val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+    private fun showFilterDialog() {
+        etSearch.text.clear()
 
-        // Set text color for both buttons
-        positiveButton?.setTextColor(color)
-        negativeButton?.setTextColor(color)
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_filter_case, null)
+
+        dialog.setContentView(dialogView)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setDimAmount(0.6f)
+
+        val spinnerStatus = dialogView.findViewById<Spinner>(R.id.spinnerStatus)
+        val btnApplyFilter = dialogView.findViewById<Button>(R.id.btnApplyFilter) // ✅ FIX
+
+        val statusOptions = arrayOf("All", "In Progress", "Complete", "Closed", "Pending")
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            statusOptions
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerStatus.adapter = adapter
+
+        val currentPosition = statusOptions.indexOf(currentFilter)
+        if (currentPosition >= 0) spinnerStatus.setSelection(currentPosition)
+
+        btnApplyFilter.setOnClickListener {
+            currentFilter = spinnerStatus.selectedItem.toString()
+            etSearch.text.clear()
+            loadCases()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+        dialog.behavior.state =
+            com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
     }
 
     private fun createNewCase(caseName: String, description: String) {
@@ -205,22 +323,17 @@ class CaseFragment : Fragment() {
             return
         }
 
-        // Show progress (you might want to add a progress dialog here)
         val queue = Volley.newRequestQueue(requireContext())
-        val stringRequest = object : StringRequest(
+
+        val request = object : StringRequest(
             Method.POST,
             ApiService.CASE_REGISTER,
             { response ->
                 try {
                     val json = JSONObject(response)
                     if (json.getString("status") == "success") {
-                        Toast.makeText(
-                            requireContext(),
-                            "Case created successfully!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        // Reload cases after successful creation
+                        Toast.makeText(requireContext(), "Case created!", Toast.LENGTH_SHORT).show()
+                        etSearch.text.clear()
                         loadCases()
                     } else {
                         Toast.makeText(
@@ -230,57 +343,21 @@ class CaseFragment : Fragment() {
                         ).show()
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
-                    Toast.makeText(
-                        requireContext(),
-                        "Error parsing response",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(requireContext(), "Error parsing response", Toast.LENGTH_SHORT).show()
                 }
             },
             { error ->
-                error.printStackTrace()
-                // Add more detailed error information
-                val errorMsg = error.message ?: "Unknown error"
-                val networkResponse = error.networkResponse
-                val statusCode = networkResponse?.statusCode ?: 0
-                val responseData = if (networkResponse?.data != null) {
-                    String(networkResponse.data, Charsets.UTF_8)
-                } else {
-                    "No response data"
-                }
-
-                Log.e("CreateCase", "Error: $errorMsg, Status: $statusCode, Response: $responseData")
-
-                Toast.makeText(
-                    requireContext(),
-                    "Creation failed: $errorMsg",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(requireContext(), "Creation failed", Toast.LENGTH_LONG).show()
             }
         ) {
-            override fun getParams(): Map<String, String> {
-                val params = HashMap<String, String>()
-                params["case_name"] = caseName
-                params["description"] = description
-                params["status"] = "Pending"
-                params["user_id"] = userId.toString()  // Important: Include user_id
-                return params
-            }
-
-            override fun getBodyContentType(): String {
-                return "application/x-www-form-urlencoded"
-            }
-
-            // Optional: Add headers if needed
-            override fun getHeaders(): Map<String, String> {
-                val headers = HashMap<String, String>()
-                headers["Content-Type"] = "application/x-www-form-urlencoded"
-                headers["Accept"] = "application/json"
-                return headers
-            }
+            override fun getParams(): Map<String, String> = hashMapOf(
+                "case_name" to caseName,
+                "description" to description,
+                "status" to "Pending",
+                "user_id" to userId.toString()
+            )
         }
 
-        queue.add(stringRequest)
+        queue.add(request)
     }
 }

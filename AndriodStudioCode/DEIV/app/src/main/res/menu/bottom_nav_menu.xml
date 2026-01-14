@@ -7,7 +7,7 @@
         android:title="Case"
         android:icon="@drawable/ic_folder"/>
     <item android:id="@+id/nav_ai"
-        android:title="AI Detection"
+        android:title="AI Scan"
         android:icon="@drawable/ic_ai"/>
     <item android:id="@+id/nav_user"
         android:title="User"

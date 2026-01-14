@@ -5,10 +5,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.volley.Request
@@ -20,13 +20,21 @@ import com.example.deiv.login.LoginActivity
 import com.example.deiv.login.SessionManager
 import org.json.JSONObject
 import android.content.Intent
+import com.example.deiv.MainActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.android.volley.toolbox.JsonObjectRequest
+
 
 class HomeFragment : Fragment() {
 
+    private lateinit var tvWelcomeUser: TextView
     private lateinit var tvTotalCases: TextView
     private lateinit var tvEvidenceUploads: TextView
     private lateinit var recyclerRecentCases: RecyclerView
     private lateinit var sessionManager: SessionManager
+    private lateinit var btnNotificationHeader: ImageButton
+    private lateinit var btnUserHeader: ImageButton
+    private lateinit var tvNotificationBadge: TextView
 
     private val recentCaseAdapter = RecentCaseAdapter()
 
@@ -34,26 +42,54 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-
+    ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         // Initialize SessionManager
         sessionManager = SessionManager(requireContext())
 
-        // Views
+        tvNotificationBadge = view.findViewById(R.id.tv_notification_badge)
+
+        // Initialize Views
+        tvWelcomeUser = view.findViewById(R.id.tvWelcomeUser)
         tvTotalCases = view.findViewById(R.id.tvTotalCases)
         tvEvidenceUploads = view.findViewById(R.id.tvEvidenceUploads)
         recyclerRecentCases = view.findViewById(R.id.recyclerRecentCases)
+        btnNotificationHeader = view.findViewById(R.id.btn_notification_header)
+        btnUserHeader = view.findViewById(R.id.btn_user_header)
         val tvViewAll = view.findViewById<TextView>(R.id.tvViewAll)
 
-        // ✅ View All click → navigate to CaseFragment
+        // Set welcome message
+        val userName = sessionManager.getName()
+        tvWelcomeUser.text = if (userName.isNotEmpty()) userName else sessionManager.getUsername()
+
         tvViewAll.setOnClickListener {
-            findNavController().navigate(R.id.nav_case)
+            // Use the bottom navigation to navigate
+            val mainActivity = activity as? MainActivity
+            mainActivity?.findViewById<BottomNavigationView>(R.id.bottomNav)?.selectedItemId = R.id.nav_case
+        }
+
+        // Header buttons - FIXED NAVIGATION
+        btnNotificationHeader.setOnClickListener {
+            // Navigate to notification activity directly
+            try {
+                val intent = Intent(requireContext(), com.example.deiv.notification.NotificationActivity::class.java)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("HomeFragment", "Error starting NotificationActivity: ${e.message}")
+                Toast.makeText(requireContext(), "Could not open notifications", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        btnUserHeader.setOnClickListener {
+            // Use the bottom navigation to navigate
+            val mainActivity = activity as? MainActivity
+            mainActivity?.findViewById<BottomNavigationView>(R.id.bottomNav)?.selectedItemId = R.id.nav_user
         }
 
         // RecyclerView setup
         recyclerRecentCases.layoutManager = LinearLayoutManager(requireContext())
+        // Use the updated RecentCaseAdapter
         recyclerRecentCases.adapter = recentCaseAdapter
 
         return view
@@ -63,6 +99,8 @@ class HomeFragment : Fragment() {
         super.onResume()
         // Load dashboard data when fragment is visible
         loadDashboard()
+        // Check for unread notifications
+        fetchUnreadNotificationsCount()
     }
 
     private fun loadDashboard() {
@@ -141,4 +179,42 @@ class HomeFragment : Fragment() {
         startActivity(intent)
         requireActivity().finish()
     }
+
+    private fun updateNotificationBadge(count: Int) {
+        if (count > 0) {
+            tvNotificationBadge.text = count.toString()
+            tvNotificationBadge.visibility = View.VISIBLE
+        } else {
+            tvNotificationBadge.visibility = View.GONE
+        }
+    }
+
+
+    private fun fetchUnreadNotificationsCount() {
+        val userId = sessionManager.getUserId()
+        if (userId <= 0) return
+
+        val url = "${ApiService.NOTIFICATION_LIST}?user_id=$userId&type=unread"
+
+        val request = JsonObjectRequest(
+            Request.Method.GET, url, null,
+            { response ->
+                try {
+                    if (response.getBoolean("success")) {
+                        val array = response.getJSONArray("notifications")
+                        val unreadCount = array.length()
+                        updateNotificationBadge(unreadCount)
+                    }
+                } catch (e: Exception) {
+                    Log.e("HomeFragment", "Error parsing unread count: ${e.message}")
+                }
+            },
+            { error ->
+                Log.e("HomeFragment", "Error fetching unread count: ${error.message}")
+            }
+        )
+
+        Volley.newRequestQueue(requireContext()).add(request)
+    }
+
 }

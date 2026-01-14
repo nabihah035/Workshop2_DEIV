@@ -2,89 +2,301 @@
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="1dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="5dp"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
     app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    app:cardUseCompatPadding="true"
-    android:background="#F5F5F5">
+    app:cardElevation="2dp"
+    app:cardUseCompatPadding="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp"
+        android:padding="16dp"
         android:background="#FFFFFF">
 
-        <!-- Case ID -->
-        <TextView
-            android:id="@+id/tvCaseId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="CASE-001"
-            android:textSize="15sp"
-            android:textColor="#000000"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
-
-        <!-- Case Name -->
-        <TextView
-            android:id="@+id/tvCaseName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Case Name"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_marginBottom="8dp" />
-
-        <!-- Description -->
-        <TextView
-            android:id="@+id/tvDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Case description goes here..."
-            android:textSize="15sp"
-            android:textColor="#000000"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:layout_marginBottom="12dp" />
-
-        <!-- Bottom Row -->
+        <!-- Top Row: Folder Icon, Case Name and ID, Status -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_marginBottom="12dp">
 
-            <!-- Date -->
-            <TextView
-                android:id="@+id/tvDate"
+            <!-- Folder Icon with Background -->
+            <LinearLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/ic_folder_background"
+                android:gravity="center"
+                android:layout_marginEnd="12dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_folder"
+                    android:tint="@android:color/white" />
+
+            </LinearLayout>
+
+            <!-- Case Name, ID and Status -->
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="01/01/2024"
-                android:textSize="12sp"
-                android:textColor="#000000" />
+                android:orientation="vertical">
 
-            <!-- Status Badge -->
-            <TextView
-                android:id="@+id/tvStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pending"
-                android:textSize="12sp"
-                android:textColor="@android:color/white"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="4dp"
-                android:background="@drawable/status_bg"
-                app:cornerRadius="20dp" />
+                <!-- Case Name -->
+                <TextView
+                    android:id="@+id/tvCaseName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cyber Fraud Investigation"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    tools:text="Cyber Fraud Investigation" />
+
+                <!-- Case ID and Status (same row) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="4dp">
+
+                    <!-- Case ID -->
+                    <TextView
+                        android:id="@+id/tvCaseId"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Case #1"
+                        android:textSize="12sp"
+                        android:textColor="#666666"
+                        tools:text="Case #1" />
+
+                    <!-- Spacer -->
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <!-- Status Badge -->
+                    <TextView
+                        android:id="@+id/tvStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pending"
+                        android:textSize="10sp"
+                        android:textColor="@android:color/white"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        app:cornerRadius="12dp"
+                        android:background="@drawable/bg_status_rounded"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"/>
+                        tools:text="Pending" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
+
+        <!-- Case Description -->
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Investigation into online banking fraud case"
+            android:textSize="14sp"
+            android:textColor="#000000"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_marginBottom="16dp"
+            tools:text="Investigation into online banking fraud case" />
+
+        <!-- Evidence and Verified Containers -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="83dp"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <!-- Evidence Container (Grey Background) with Rounded Corners -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/containerEvidence"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#F5F5F5"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <!-- Evidence Icon and Text -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="4dp"
+                            android:src="@drawable/ic_evidence"
+                            android:tint="#666666" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Evidence"
+                            android:textColor="#666666"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <!-- Evidence Count -->
+                    <TextView
+                        android:id="@+id/tvEvidenceCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4"
+                        android:textColor="#000000"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:text="4" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Verified Container (Fade Green Background) with Rounded Corners -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/containerVerified"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#E8F5E9"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <!-- Verified Icon and Text -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="4dp"
+                            android:src="@drawable/ic_verified"
+                            android:tint="#2E7D32" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Verified"
+                            android:textColor="#2E7D32"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <!-- Verified Count -->
+                    <TextView
+                        android:id="@+id/tvVerifiedCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1"
+                        android:textColor="#000000"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:text="1" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="0dp"/>
+
+        <!-- Open Button with Arrow - Side by side at right corner -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp">
+
+            <!-- Arrow icon and text container at right corner -->
+            <LinearLayout
+                android:id="@+id/openContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="2dp">
+
+                <!-- "Click to view details" text -->
+                <TextView
+                    android:id="@+id/tvOpen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔍 Click to view details"
+                    android:textSize="12sp"
+                    android:textColor="#666666"
+                    android:layout_marginEnd="4dp"
+                    tools:text="🔍 Click to view details" />
+
+                <!-- Arrow icon -->
+                <ImageView
+                    android:id="@+id/ivArrowRight"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_arrowright"
+                    android:tint="#666666"
+                    android:contentDescription="View details" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
 
     </LinearLayout>
 

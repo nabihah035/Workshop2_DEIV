@@ -1,29 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
+    android:layout_marginBottom="1dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    android:background="#F5F5F5">
+    app:cardElevation="4dp"
+    android:background="@drawable/card_bg"
+    app:cardUseCompatPadding="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
         android:orientation="vertical"
-        android:background="#FFFFFF">
+        android:background="@android:color/white">
 
-        <!-- Case Name -->
-        <TextView
-            android:id="@+id/tvCaseName"
-            android:layout_width="wrap_content"
+        <!-- Top Row: Case Name and Status -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Case Name"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvCaseName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Case Name"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+
+            <!-- Status Badge -->
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="In Progress"
+                android:textSize="12sp"
+                android:textColor="@android:color/white"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:background="@drawable/bg_status_rounded"/>
+        </LinearLayout>
 
         <!-- Case ID -->
         <TextView
@@ -31,40 +57,31 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CASE-001"
-            android:textSize="15sp"
-            android:textColor="#000000"
-            android:paddingTop="4dp" />
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="8dp" />
 
-        <!-- Bottom Row -->
+        <!-- Bottom Row: Date -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingTop="8dp">
+            android:gravity="center_vertical">
 
-            <!-- Date -->
             <TextView
-                android:id="@+id/tvDate"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="2026-01-01"
-                android:textSize="14sp"
-                android:textColor="#000000" />
-
-            <!-- Status -->
-            <TextView
-                android:id="@+id/tvStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="In Progress"
-                android:textSize="12sp"
-                android:textColor="@color/white"
-                android:background="@drawable/status_bg"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="4dp" />
+                android:text="📅"
+                android:textSize="14sp"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2026-01-01"
+                android:textSize="14sp"
+                android:textColor="#666666" />
         </LinearLayout>
-
     </LinearLayout>
-
 </androidx.cardview.widget.CardView>

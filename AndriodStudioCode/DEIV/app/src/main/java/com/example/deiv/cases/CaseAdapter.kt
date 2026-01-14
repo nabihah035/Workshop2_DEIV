@@ -46,26 +46,36 @@ class CaseAdapter(
         private val tvCaseId: TextView = itemView.findViewById(R.id.tvCaseId)
         private val tvDescription: TextView = itemView.findViewById(R.id.tvDescription)
         private val tvStatus: TextView = itemView.findViewById(R.id.tvStatus)
-        private val tvDate: TextView = itemView.findViewById(R.id.tvDate)
+        private val tvEvidenceCount: TextView = itemView.findViewById(R.id.tvEvidenceCount)
+        private val tvVerifiedCount: TextView = itemView.findViewById(R.id.tvVerifiedCount)
 
-        @SuppressLint("SetTextI18n", "UseKtx")
+        @SuppressLint("SetTextI18n")
         fun bind(obj: JSONObject) {
             tvCaseName.text = obj.getString("case_name")
-            tvCaseId.text = "CASE-${obj.getInt("Case_id")}"
+            tvCaseId.text = "Case #${obj.getInt("Case_id")}"
             tvDescription.text = obj.getString("description")
             tvStatus.text = obj.getString("status")
 
-            // APPLY STATUS COLOR FROM API
+            // Set evidence count
+            val evidenceCount = if (obj.has("evidence_count")) obj.getInt("evidence_count") else 0
+            tvEvidenceCount.text = evidenceCount.toString()
+
+            // Set verified count (you'll need to add this to your API)
+            val verifiedCount = if (obj.has("verified_count")) obj.getInt("verified_count") else 0
+            tvVerifiedCount.text = verifiedCount.toString()
+
+            // Apply status color
+            // Apply status color with rounded background
             if (obj.has("status_color")) {
                 try {
                     val color = android.graphics.Color.parseColor(obj.getString("status_color"))
-                    tvStatus.setBackgroundColor(color)
+                    val bg = tvStatus.background.mutate()
+                    bg.setTint(color)
                 } catch (e: IllegalArgumentException) {
                     e.printStackTrace()
                 }
             }
 
-            tvDate.text = obj.getString("created_at")
 
             itemView.setOnClickListener {
                 onClick(obj.getInt("Case_id"))
