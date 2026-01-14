@@ -1,28 +1,34 @@
 package com.example.deiv.cases
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.Volley
 import com.example.deiv.R
 import com.example.deiv.api.ApiService
 import com.example.deiv.login.SessionManager
 import com.example.deiv.MainActivity
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
 import org.json.JSONObject
-import java.text.SimpleDateFormat
-import java.util.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class AddEvidenceActivity : AppCompatActivity() {
 
+    // UI Components
     private lateinit var tvFileName: TextView
     private lateinit var tvCaseName: TextView
     private lateinit var tvCaseId: TextView
@@ -35,12 +41,21 @@ class AddEvidenceActivity : AppCompatActivity() {
     private lateinit var tvTitle: TextView
     private lateinit var tvSubtitle: TextView
 
+    // Data Variables
     private var selectedFileUri: Uri? = null
     private var selectedFileName: String = ""
     private var caseId: Int = -1
     private var caseName: String = ""
     private lateinit var sessionManager: SessionManager
 
+    // Setup OkHttp Client (From your Fragment logic)
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .build()
+
+    // File Picker Launcher
     @SuppressLint("SetTextI18n")
     private val pickMediaLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -53,16 +68,29 @@ class AddEvidenceActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Change to activity layout
         setContentView(R.layout.activity_add_evidence)
 
         // Initialize SessionManager
         sessionManager = SessionManager(this)
 
-        // Initialize views
+        // Initialize Views
+        initViews()
+
+        // Get Intent Data
+        caseId = intent.getIntExtra("case_id", -1)
+        caseName = intent.getStringExtra("case_name") ?: "Unknown Case"
+
+        // Set UI Data
+        tvCaseName.text = caseName
+        tvCaseId.text = "Case #$caseId"
+
+        checkLoginStatus()
+        setupListeners()
+    }
+
+    private fun initViews() {
         tvTitle = findViewById(R.id.tvTitle)
         tvSubtitle = findViewById(R.id.tvSubtitle)
         tvCaseName = findViewById(R.id.tvCaseName)
@@ -74,35 +102,15 @@ class AddEvidenceActivity : AppCompatActivity() {
         imagePreview = findViewById(R.id.imagePreview)
         btnOpenPdf = findViewById(R.id.btnOpenPdf)
         progressBar = findViewById(R.id.progressBar)
-
-        // Get case details from intent
-        caseId = intent.getIntExtra("case_id", -1)
-        caseName = intent.getStringExtra("case_name") ?: "Unknown Case"
-
-        // Update UI with case details
-        tvCaseName.text = caseName
-        tvCaseId.text = "Case #$caseId"
-        tvSubtitle.text = "Upload digital evidence files"
-
-        setupListeners()
-        checkLoginStatus()
     }
 
     private fun setupListeners() {
         btnBack.setOnClickListener {
-            finish()
+            finish() // Activities use finish(), Fragments use popBackStack()
         }
 
         btnPickFile.setOnClickListener {
             pickMediaLauncher.launch("*/*")
-        }
-
-        btnUpload.setOnClickListener {
-            if (selectedFileUri != null) {
-                uploadEvidence()
-            } else {
-                Toast.makeText(this, "Please select a file first", Toast.LENGTH_SHORT).show()
-            }
         }
 
         btnOpenPdf.setOnClickListener {
@@ -113,16 +121,174 @@ class AddEvidenceActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+
+        btnUpload.setOnClickListener {
+            if (selectedFileUri != null) {
+                uploadEvidenceWithAiDetection()
+            } else {
+                Toast.makeText(this, "Please select a file first", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
+    // --- LOGIC MOVED FROM FRAGMENT: CREATE TEMP FILE ---
+    private fun getFileFromUri(uri: Uri): File? {
+        val contentResolver = contentResolver
+        val tempFile = File(cacheDir, selectedFileName)
+        try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val outputStream = FileOutputStream(tempFile)
+            inputStream?.copyTo(outputStream)
+            inputStream?.close()
+            outputStream.close()
+            return tempFile
+        } catch (e: IOException) {
+            Log.e("AddEvidenceActivity", "Failed to create temp file", e)
+            return null
+        }
+    }
+
+    // --- LOGIC MOVED FROM FRAGMENT: UPLOAD WITH OKHTTP ---
+    private fun uploadEvidenceWithAiDetection() {
+        if (caseId <= 0 || selectedFileUri == null) {
+            Toast.makeText(this, "Invalid case ID or no file selected", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userId = sessionManager.getUserId()
+        progressBar.visibility = View.VISIBLE
+        btnUpload.isEnabled = false
+
+        // Create the temp file for upload
+        val file = getFileFromUri(selectedFileUri!!)
+        if (file == null) {
+            Toast.makeText(this, "Failed to read file.", Toast.LENGTH_SHORT).show()
+            progressBar.visibility = View.GONE
+            btnUpload.isEnabled = true
+            return
+        }
+
+        val mimeType = contentResolver.getType(selectedFileUri!!)
+
+        // Build Multipart Body
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("case_id", caseId.toString())
+            .addFormDataPart("user_id", userId.toString())
+            // This uploads the actual file binary
+            .addFormDataPart("file", selectedFileName, file.asRequestBody(mimeType?.toMediaTypeOrNull()))
+            .build()
+
+        val request = Request.Builder()
+            .url(ApiService.EVIDENCE_UPLOAD)
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    progressBar.visibility = View.GONE
+                    btnUpload.isEnabled = true
+                    showCustomDialog(false, "Network Error", "Failed to connect: ${e.message}", false)
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseBody = response.body?.string()
+                runOnUiThread {
+                    progressBar.visibility = View.GONE
+                    btnUpload.isEnabled = true
+
+                    if (!response.isSuccessful) {
+                        Log.e("AddEvidenceActivity", "Server Error: ${response.code} - $responseBody")
+                        showCustomDialog(false, "Server Error", "Code: ${response.code}", false)
+                        return@runOnUiThread
+                    }
+
+                    if (responseBody == null) {
+                        Log.e("AddEvidenceActivity", "Response body is null")
+                        showCustomDialog(false, "Parsing Error", "Empty response from server.", false)
+                        return@runOnUiThread
+                    }
+
+                    try {
+                        val json = JSONObject(responseBody)
+                        val status = json.getString("status")
+                        val message = json.getString("message")
+
+                        when (status) {
+                            "success" -> {
+                                // Evidence valid and saved
+                                showCustomDialog(true, "Evidence Verified", message, true)
+                            }
+                            "tampered" -> {
+                                // Evidence tampered but saved as alert
+                                showCustomDialog(false, "Security Alert", message, true)
+                            }
+                            else -> {
+                                // Generic error
+                                showCustomDialog(false, "Upload Failed", message, false)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("AddEvidenceActivity", "Error parsing JSON: '$responseBody'", e)
+                        showCustomDialog(false, "Parsing Error", "Invalid response from server. Check logs for details.", false)
+                    }
+                }
+            }
+        })
+    }
+
+    // --- CUSTOM DIALOG (Adapted for Activity) ---
+    private fun showCustomDialog(isSuccess: Boolean, title: String, message: String, shouldClose: Boolean) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_upload_result, null)
+
+        val icon = dialogView.findViewById<ImageView>(R.id.dialogIcon)
+        val tvTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
+        val tvMessage = dialogView.findViewById<TextView>(R.id.dialogMessage)
+        val btnAction = dialogView.findViewById<Button>(R.id.dialogButton)
+
+        tvTitle.text = title
+        tvMessage.text = message
+
+        if (isSuccess) {
+            icon.setImageResource(R.drawable.ic_check_circle)
+            icon.setColorFilter(getColor(android.R.color.holo_green_dark))
+            btnAction.setBackgroundColor(getColor(android.R.color.holo_green_dark))
+            btnAction.text = "CONTINUE"
+        } else {
+            icon.setImageResource(android.R.drawable.ic_dialog_alert)
+            icon.setColorFilter(getColor(android.R.color.holo_red_dark))
+            btnAction.setBackgroundColor(getColor(android.R.color.holo_red_dark))
+            btnAction.text = if (shouldClose) "ACKNOWLEDGE" else "TRY AGAIN"
+        }
+
+        val builder = AlertDialog.Builder(this)
+        builder.setView(dialogView)
+        builder.setCancelable(false)
+        val dialog = builder.create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnAction.setOnClickListener {
+            dialog.dismiss()
+            if (shouldClose) {
+                // Return result OK so CaseDetail can refresh
+                setResult(RESULT_OK)
+                finish()
+            }
+        }
+
+        dialog.show()
+    }
+
+    // --- HELPER FUNCTIONS ---
     private fun getFileName(uri: Uri): String {
         var name = "unknown"
         val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
-
         cursor?.use {
-            val index = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (it.moveToFirst() && index >= 0) {
-                name = it.getString(index)
+            if (it.moveToFirst()) {
+                val index = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (index >= 0) name = it.getString(index)
             }
         }
         return name
@@ -130,158 +296,26 @@ class AddEvidenceActivity : AppCompatActivity() {
 
     private fun previewSelectedFile(uri: Uri) {
         val mimeType = contentResolver.getType(uri)
-
-        when {
-            mimeType?.startsWith("image") == true -> {
-                imagePreview.setImageURI(uri)
-                imagePreview.visibility = View.VISIBLE
-                btnOpenPdf.visibility = View.GONE
-            }
-
-            mimeType == "application/pdf" -> {
-                imagePreview.visibility = View.GONE
-                btnOpenPdf.visibility = View.VISIBLE
-            }
-
-            else -> {
-                imagePreview.visibility = View.GONE
-                btnOpenPdf.visibility = View.GONE
-                Toast.makeText(
-                    this,
-                    "File type not supported for preview",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+        if (mimeType?.startsWith("image") == true) {
+            imagePreview.setImageURI(uri)
+            imagePreview.visibility = View.VISIBLE
+            btnOpenPdf.visibility = View.GONE
+        } else if (mimeType == "application/pdf") {
+            imagePreview.visibility = View.GONE
+            btnOpenPdf.visibility = View.VISIBLE
+        } else {
+            imagePreview.visibility = View.GONE
+            btnOpenPdf.visibility = View.GONE
         }
     }
 
     private fun checkLoginStatus() {
         if (!sessionManager.isLoggedIn()) {
-            Toast.makeText(
-                this,
-                "You need to login to upload evidence",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            // Redirect to MainActivity which should handle login
+            Toast.makeText(this, "Login required", Toast.LENGTH_SHORT).show()
             val intent = Intent(this, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
             finish()
         }
-    }
-
-    private fun uploadEvidence() {
-        if (caseId <= 0) {
-            Toast.makeText(this, "Invalid case ID", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // Get user ID from session manager
-        val userId = sessionManager.getUserId()
-
-        if (userId <= 0) {
-            Toast.makeText(
-                this,
-                "User not authenticated. Please login again.",
-                Toast.LENGTH_SHORT
-            ).show()
-            checkLoginStatus()
-            return
-        }
-
-        progressBar.visibility = View.VISIBLE
-        btnUpload.isEnabled = false
-
-        // Generate metadata
-        val hashValue = generateRandomHash()
-        val uploadDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-
-        // Create request
-        val queue = Volley.newRequestQueue(this)
-        val url = ApiService.EVIDENCE_UPLOAD
-
-        val request = object : StringRequest(
-            Method.POST,
-            url,
-            { response ->
-                progressBar.visibility = View.GONE
-                btnUpload.isEnabled = true
-
-                try {
-                    val json = JSONObject(response)
-                    if (json.getString("status") == "success") {
-                        Toast.makeText(
-                            this,
-                            "Evidence uploaded successfully!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        // Return to case detail with result
-                        val resultIntent = Intent()
-                        setResult(RESULT_OK, resultIntent)
-                        finish()
-                    } else {
-                        Toast.makeText(
-                            this,
-                            "Upload failed: ${json.getString("message")}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                } catch (_: Exception) {
-                    Toast.makeText(this, "Error parsing response", Toast.LENGTH_SHORT).show()
-                }
-            },
-            { error ->
-                progressBar.visibility = View.GONE
-                btnUpload.isEnabled = true
-                val errorMsg = error.message ?: "Unknown error"
-                val networkResponse = error.networkResponse
-                val statusCode = networkResponse?.statusCode ?: 0
-                val responseData = if (networkResponse?.data != null) {
-                    String(networkResponse.data, Charsets.UTF_8)
-                } else {
-                    "No response data"
-                }
-
-                Log.e("UploadEvidence", "Error: $errorMsg, Status: $statusCode, Response: $responseData")
-
-                Toast.makeText(
-                    this,
-                    "Upload failed: $errorMsg (Status: $statusCode)",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        ) {
-            override fun getParams(): Map<String, String> {
-                val params = HashMap<String, String>()
-                params["file_name"] = selectedFileName
-                params["upload_date"] = uploadDate
-                params["status"] = "Pending"
-                params["hash_value"] = hashValue
-                params["case_id"] = caseId.toString()
-                params["user_id"] = userId.toString()
-                return params
-            }
-
-            override fun getBodyContentType(): String {
-                return "application/x-www-form-urlencoded"
-            }
-
-            override fun getHeaders(): Map<String, String> {
-                val headers = HashMap<String, String>()
-                headers["Content-Type"] = "application/x-www-form-urlencoded"
-                headers["Accept"] = "application/json"
-                return headers
-            }
-        }
-
-        queue.add(request)
-    }
-
-    private fun generateRandomHash(): String {
-        val randomBytes = ByteArray(32)
-        Random().nextBytes(randomBytes)
-        return randomBytes.joinToString("") { "%02x".format(it) }
     }
 }
